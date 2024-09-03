@@ -463,5 +463,20 @@ conj_1_upgma <- hclust(dist_conj_1, method = 'average')
 plot(conj_1_upgma)
 ```
 
+- Todos
+
+```{r, out.width='75%'}
+invisible(sapply(names(conjuntos_l),
+       function(x) {
+         d <- conjuntos_l[[x]] %>% 
+           as.data.frame() %>%
+           column_to_rownames('nombre') %>%
+           dist(diag = T, upper = T)
+         u <- hclust(d, method = 'average')
+         plot(u, main = x)
+       }))
+```
+
+
 ## Referencias
 

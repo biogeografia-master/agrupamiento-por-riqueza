@@ -977,6 +977,22 @@ conj_1_upgma <- hclust(dist_conj_1, method = 'average')
 plot(conj_1_upgma)
 ```
 
+- Todos
+
+``` r
+invisible(sapply(names(conjuntos_l),
+       function(x) {
+         d <- conjuntos_l[[x]] %>% 
+           as.data.frame() %>%
+           column_to_rownames('nombre') %>%
+           dist(diag = T, upper = T)
+         u <- hclust(d, method = 'average')
+         plot(u, main = x)
+       }))
+```
+
+<img src="README_files/figure-gfm/unnamed-chunk-13-1.png" width="75%" /><img src="README_files/figure-gfm/unnamed-chunk-13-2.png" width="75%" /><img src="README_files/figure-gfm/unnamed-chunk-13-3.png" width="75%" /><img src="README_files/figure-gfm/unnamed-chunk-13-4.png" width="75%" /><img src="README_files/figure-gfm/unnamed-chunk-13-5.png" width="75%" /><img src="README_files/figure-gfm/unnamed-chunk-13-6.png" width="75%" /><img src="README_files/figure-gfm/unnamed-chunk-13-7.png" width="75%" /><img src="README_files/figure-gfm/unnamed-chunk-13-8.png" width="75%" /><img src="README_files/figure-gfm/unnamed-chunk-13-9.png" width="75%" /><img src="README_files/figure-gfm/unnamed-chunk-13-10.png" width="75%" /><img src="README_files/figure-gfm/unnamed-chunk-13-11.png" width="75%" /><img src="README_files/figure-gfm/unnamed-chunk-13-12.png" width="75%" /><img src="README_files/figure-gfm/unnamed-chunk-13-13.png" width="75%" /><img src="README_files/figure-gfm/unnamed-chunk-13-14.png" width="75%" /><img src="README_files/figure-gfm/unnamed-chunk-13-15.png" width="75%" /><img src="README_files/figure-gfm/unnamed-chunk-13-16.png" width="75%" /><img src="README_files/figure-gfm/unnamed-chunk-13-17.png" width="75%" /><img src="README_files/figure-gfm/unnamed-chunk-13-18.png" width="75%" /><img src="README_files/figure-gfm/unnamed-chunk-13-19.png" width="75%" /><img src="README_files/figure-gfm/unnamed-chunk-13-20.png" width="75%" />
+
 ## Referencias
 
 <div id="refs" class="references csl-bib-body hanging-indent"
