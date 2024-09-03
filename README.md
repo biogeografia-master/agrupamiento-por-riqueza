@@ -155,7 +155,7 @@ print(combined_map)
 prov <- prov %>% filter(nombre != 'HERMANAS MIRABAL')
 set.seed(123)
 replicas <- replicate(20, sample(prov$nombre, 6))
-df <- data.frame(Conjunto = 1:10, t(replicas))
+df <- data.frame(Conjunto = 1:20, t(replicas))
 df %>%
   unite("Provincias asignadas", X1:X6, sep = ", ") %>% 
   knitr::kable()
@@ -173,16 +173,16 @@ df %>%
 |        8 | ESPAILLAT, INDEPENDENCIA, SANCHEZ RAMÍREZ, MONSEÑOR NOUEL, SAN JUAN, ELÍAS PIÑA                              |
 |        9 | SAN JUAN, MONSEÑOR NOUEL, DUARTE, SANTIAGO RODRÍGUEZ, AZUA, DAJABÓN                                          |
 |       10 | EL SEIBO, LA ROMANA, LA VEGA, PUERTO PLATA, DISTRITO NACIONAL, SANTIAGO RODRÍGUEZ                            |
-|        1 | MONSEÑOR NOUEL, SANTIAGO RODRÍGUEZ, DUARTE, SAN JUAN, MONTE CRISTI, ESPAILLAT                                |
-|        2 | MONTE CRISTI, VALVERDE, MONTE PLATA, PEDERNALES, SAN CRISTÓBAL, DUARTE                                       |
-|        3 | LA ALTAGRACIA, EL SEIBO, SAN PEDRO DE MACORÍS, HATO MAYOR, ELÍAS PIÑA, PEDERNALES                            |
-|        4 | PERAVIA, SAN PEDRO DE MACORÍS, PUERTO PLATA, SANTO DOMINGO, AZUA, BARAHONA                                   |
-|        5 | LA VEGA, DAJABÓN, SAN PEDRO DE MACORÍS, SAMANÁ, SANTIAGO RODRÍGUEZ, SAN CRISTÓBAL                            |
-|        6 | SAN PEDRO DE MACORÍS, SANTIAGO RODRÍGUEZ, MARÍA TRINIDAD SÁNCHEZ, SAN JOSÉ DE OCOA, SANCHEZ RAMÍREZ, BAORUCO |
-|        7 | EL SEIBO, PEDERNALES, LA ROMANA, SANTIAGO RODRÍGUEZ, MARÍA TRINIDAD SÁNCHEZ, BAORUCO                         |
-|        8 | MARÍA TRINIDAD SÁNCHEZ, HATO MAYOR, ELÍAS PIÑA, BAORUCO, SANCHEZ RAMÍREZ, SAN PEDRO DE MACORÍS               |
-|        9 | VALVERDE, MONTE CRISTI, SAN JUAN, DAJABÓN, EL SEIBO, SAMANÁ                                                  |
-|       10 | INDEPENDENCIA, PUERTO PLATA, SANTO DOMINGO, LA ROMANA, AZUA, HATO MAYOR                                      |
+|       11 | MONSEÑOR NOUEL, SANTIAGO RODRÍGUEZ, DUARTE, SAN JUAN, MONTE CRISTI, ESPAILLAT                                |
+|       12 | MONTE CRISTI, VALVERDE, MONTE PLATA, PEDERNALES, SAN CRISTÓBAL, DUARTE                                       |
+|       13 | LA ALTAGRACIA, EL SEIBO, SAN PEDRO DE MACORÍS, HATO MAYOR, ELÍAS PIÑA, PEDERNALES                            |
+|       14 | PERAVIA, SAN PEDRO DE MACORÍS, PUERTO PLATA, SANTO DOMINGO, AZUA, BARAHONA                                   |
+|       15 | LA VEGA, DAJABÓN, SAN PEDRO DE MACORÍS, SAMANÁ, SANTIAGO RODRÍGUEZ, SAN CRISTÓBAL                            |
+|       16 | SAN PEDRO DE MACORÍS, SANTIAGO RODRÍGUEZ, MARÍA TRINIDAD SÁNCHEZ, SAN JOSÉ DE OCOA, SANCHEZ RAMÍREZ, BAORUCO |
+|       17 | EL SEIBO, PEDERNALES, LA ROMANA, SANTIAGO RODRÍGUEZ, MARÍA TRINIDAD SÁNCHEZ, BAORUCO                         |
+|       18 | MARÍA TRINIDAD SÁNCHEZ, HATO MAYOR, ELÍAS PIÑA, BAORUCO, SANCHEZ RAMÍREZ, SAN PEDRO DE MACORÍS               |
+|       19 | VALVERDE, MONTE CRISTI, SAN JUAN, DAJABÓN, EL SEIBO, SAMANÁ                                                  |
+|       20 | INDEPENDENCIA, PUERTO PLATA, SANTO DOMINGO, LA ROMANA, AZUA, HATO MAYOR                                      |
 
 3.  **Presentación de los datos crudos de cada uno de los 20
     conjuntos**. Esta matriz contiene la riqueza relativa (en tanto por

@@ -163,7 +163,7 @@ print(combined_map)
 prov <- prov %>% filter(nombre != 'HERMANAS MIRABAL')
 set.seed(123)
 replicas <- replicate(20, sample(prov$nombre, 6))
-df <- data.frame(Conjunto = 1:10, t(replicas))
+df <- data.frame(Conjunto = 1:20, t(replicas))
 df %>%
   unite("Provincias asignadas", X1:X6, sep = ", ") %>% 
   knitr::kable()

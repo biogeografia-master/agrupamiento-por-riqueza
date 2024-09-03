@@ -581,7 +581,7 @@ print(combined_map)</code></pre>
 <pre class="r"><code>prov &lt;- prov %&gt;% filter(nombre != &#39;HERMANAS MIRABAL&#39;)
 set.seed(123)
 replicas &lt;- replicate(20, sample(prov$nombre, 6))
-df &lt;- data.frame(Conjunto = 1:10, t(replicas))
+df &lt;- data.frame(Conjunto = 1:20, t(replicas))
 df %&gt;%
   unite(&quot;Provincias asignadas&quot;, X1:X6, sep = &quot;, &quot;) %&gt;% 
   knitr::kable()</code></pre>
@@ -638,43 +638,43 @@ df %&gt;%
 <td align="left">EL SEIBO, LA ROMANA, LA VEGA, PUERTO PLATA, DISTRITO NACIONAL, SANTIAGO RODRÍGUEZ</td>
 </tr>
 <tr class="odd">
-<td align="right">1</td>
+<td align="right">11</td>
 <td align="left">MONSEÑOR NOUEL, SANTIAGO RODRÍGUEZ, DUARTE, SAN JUAN, MONTE CRISTI, ESPAILLAT</td>
 </tr>
 <tr class="even">
-<td align="right">2</td>
+<td align="right">12</td>
 <td align="left">MONTE CRISTI, VALVERDE, MONTE PLATA, PEDERNALES, SAN CRISTÓBAL, DUARTE</td>
 </tr>
 <tr class="odd">
-<td align="right">3</td>
+<td align="right">13</td>
 <td align="left">LA ALTAGRACIA, EL SEIBO, SAN PEDRO DE MACORÍS, HATO MAYOR, ELÍAS PIÑA, PEDERNALES</td>
 </tr>
 <tr class="even">
-<td align="right">4</td>
+<td align="right">14</td>
 <td align="left">PERAVIA, SAN PEDRO DE MACORÍS, PUERTO PLATA, SANTO DOMINGO, AZUA, BARAHONA</td>
 </tr>
 <tr class="odd">
-<td align="right">5</td>
+<td align="right">15</td>
 <td align="left">LA VEGA, DAJABÓN, SAN PEDRO DE MACORÍS, SAMANÁ, SANTIAGO RODRÍGUEZ, SAN CRISTÓBAL</td>
 </tr>
 <tr class="even">
-<td align="right">6</td>
+<td align="right">16</td>
 <td align="left">SAN PEDRO DE MACORÍS, SANTIAGO RODRÍGUEZ, MARÍA TRINIDAD SÁNCHEZ, SAN JOSÉ DE OCOA, SANCHEZ RAMÍREZ, BAORUCO</td>
 </tr>
 <tr class="odd">
-<td align="right">7</td>
+<td align="right">17</td>
 <td align="left">EL SEIBO, PEDERNALES, LA ROMANA, SANTIAGO RODRÍGUEZ, MARÍA TRINIDAD SÁNCHEZ, BAORUCO</td>
 </tr>
 <tr class="even">
-<td align="right">8</td>
+<td align="right">18</td>
 <td align="left">MARÍA TRINIDAD SÁNCHEZ, HATO MAYOR, ELÍAS PIÑA, BAORUCO, SANCHEZ RAMÍREZ, SAN PEDRO DE MACORÍS</td>
 </tr>
 <tr class="odd">
-<td align="right">9</td>
+<td align="right">19</td>
 <td align="left">VALVERDE, MONTE CRISTI, SAN JUAN, DAJABÓN, EL SEIBO, SAMANÁ</td>
 </tr>
 <tr class="even">
-<td align="right">10</td>
+<td align="right">20</td>
 <td align="left">INDEPENDENCIA, PUERTO PLATA, SANTO DOMINGO, LA ROMANA, AZUA, HATO MAYOR</td>
 </tr>
 </tbody>
