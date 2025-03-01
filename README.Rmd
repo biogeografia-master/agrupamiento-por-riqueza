@@ -1,5 +1,5 @@
 ---
-title: "Prácticas de aula 3 (PA03). Agrupar provincias según su riqueza relativa de especies por géneros de Bromeliaceae<small><br>Biogeografía (GEO-131)<br>Universidad Autónoma de Santo Domingo (UASD)<br>Semestre 2024-02</small>"
+title: "Prácticas de aula 3 (PA03). Agrupar provincias según su riqueza relativa de especies por géneros de Bromeliaceae<small><br>Biogeografía (GEO-131)<br>Universidad Autónoma de Santo Domingo (UASD)<br>Semestre 2025-01</small>"
 author: "El Tali"
 date: "`r format(Sys.Date(), '%Y-%m-%d')`"
 output:
@@ -47,7 +47,7 @@ if (grepl('gfm', output_format)) {
 
 # Fecha/hora de entrega
 
-**04 de septiembre de 2024, 7:59 pm.**
+**[VER PORTAL DE LA ASIGNATURA](https://github.com/biogeografia-202501)**
 
 # Introducción
 
@@ -92,7 +92,7 @@ Luego leemos los datos.
 prov <- st_read('data/riqueza_relativa_provincias_sf.gpkg', quiet = T) %>% 
   rename(nombre = TOPONIMIA) %>% select(-PROV, -REG, -ENLACE)
 # Comprobar 100%
-# prov %>% st_drop_geometry() %>% select(-(PROV:ENLACE)) %>% rowSums()
+# prov %>% st_drop_geometry() %>% select(-nombre) %>% rowSums(na.rm = T)
 ```
 
 Una representación cartográfica te ayudará a ver las distribuciones porcentuales a lo largo del país.
@@ -153,23 +153,58 @@ maps <- map(variables, function(var) {
 # Combinar los mapas en una sola figura con leyenda común
 combined_map <- plot_grid(plotlist = maps, labels = LETTERS[1:length(maps)], label_size = 10, nrow = 3)
 
-# Mostrar el mapa combinado
-print(combined_map)
+# Guardar el mapa combinado
+ggsave("salidas/riqueza_relativa_provincias.png", combined_map, width = 10, height = 10, dpi = 300)
 ```
 
-2. **Creación de los 20 conjuntos** (reserva el conjunto 1 al Tali). Se han creado 20 conjuntos, cada uno de seis provincias elegidas al azar utilizando sus nombres.
+
+```{r, echo=F}
+# Mostrar el mapa combinado
+knitr::include_graphics("salidas/riqueza_relativa_provincias.png")
+```
+
+```{r, echo=F}
+n_conjuntos <- 30
+```
+
+
+2. **Creación de los `r n_conjuntos` conjuntos** (reserva el conjunto 1 al Tali). Se han creado `r n_conjuntos` conjuntos, cada uno de seis provincias elegidas al azar utilizando sus nombres.
 
 ```{r}
 prov <- prov %>% filter(nombre != 'HERMANAS MIRABAL')
 set.seed(123)
-replicas <- replicate(20, sample(prov$nombre, 6))
-df <- data.frame(Conjunto = 1:20, t(replicas))
-df %>%
-  unite("Provincias asignadas", X1:X6, sep = ", ") %>% 
+replicas_1 <- replicate(1, sample(prov$nombre, 6))
+set.seed(321)
+replicas_n_1 <- replicate(n_conjuntos - 1, sample(prov$nombre, 6))
+replicas <- cbind(replicas_1, replicas_n_1)
+df <- data.frame(Conjunto = 1:n_conjuntos, t(replicas))
+df_conjuntos <- df %>%
+  unite("Provincias asignadas", X1:X6, sep = ", ")
+df_conjuntos %>% 
   knitr::kable()
 ```
 
-3. **Presentación de los datos crudos de cada uno de los 20 conjuntos**. Esta matriz contiene la riqueza relativa (en tanto por ciento) de especies de bromelias según género de la base de datos GBIF [@gbiforg2024what]. Con esta matriz podrás hacer un cálculo de distancia (parte 1 del mandato, que verás en la siguiente sección).
+
+```{r, echo=F, results='asis'}
+# Convertir la columna Provincias en una lista de provincias ordenadas alfabéticamente
+foo <- sapply(strsplit(df_conjuntos$`Provincias asignadas`, ", "), sort)
+bar <- data.frame(Conjunto = 1:n_conjuntos, t(foo))
+df_conjuntos_ordenados <- bar %>%
+  unite("Provincias asignadas", X1:X6, sep = ", ")
+
+# Ahora buscamos duplicados
+duplicados <- duplicated(df_conjuntos_ordenados$`Provincias asignadas`) | duplicated(df_conjuntos_ordenados$`Provincias asignadas`, fromLast = TRUE)
+
+# Ver si hay duplicados y cuáles son
+if(any(duplicados)) {
+  cat("**Hay conjuntos de provincias duplicados en los siguientes índices:**", which(duplicados), '\n')
+  stop("No se debería continuar con este conjunto de datos")
+} else {
+  cat("**Nota: Todos los conjuntos de provincias son únicos.**")
+}
+```
+
+3. **Presentación de los datos crudos de cada uno de los `r n_conjuntos` conjuntos**. Esta matriz contiene la riqueza relativa (en tanto por ciento) de especies de bromelias según género de la base de datos GBIF [@gbiforg2024what]. Con esta matriz podrás hacer un cálculo de distancia (parte 1 del mandato, que verás en la siguiente sección).
 
 ```{r}
 conjuntos_l <- sapply(1:ncol(replicas),
@@ -177,7 +212,7 @@ conjuntos_l <- sapply(1:ncol(replicas),
          prov %>%
          filter(nombre %in% replicas[, x]) %>% st_drop_geometry(),
        simplify = F) %>%
-  setNames(paste0('Conjunto ', 1:20))
+  setNames(paste0('Conjunto ', 1:n_conjuntos))
 conjuntos_l_k <- lapply(
   conjuntos_l,
   function(x) {
@@ -196,7 +231,7 @@ for (tabla in 1:length(conjuntos_l_k)) {
 }
 ```
 
-4. **Generación de la matriz de distancias de cada uno de los 20 conjuntos**. Esta es la matriz de distancias con la que podrás realizar el agrupamiento jerárquico UPGMA (parte 2 del mandato, que verás en la siguiente sección).
+4. **Generación de la matriz de distancias de cada uno de los `r n_conjuntos` conjuntos**. Esta es la matriz de distancias con la que podrás realizar el agrupamiento jerárquico UPGMA (parte 2 del mandato, que verás en la siguiente sección).
 
 ```{r, results='asis'}
 # Mostrar las matrices de distancia
@@ -216,24 +251,26 @@ print(sapply(
 
 ## **Mandato**.
 
-> Ten presente un aspecto importante. El Tali te provee la matriz de distancias para que realices el agrupamiento (parte 2 de este mandato). Sin embargo, el Tali también te pide, en la parte 1 de este mandato que, a modo de prueba, calcules la distancia euclidiana para dos pares de provincias elegidos al azar de entre los 15 posibles. Esto tiene por objetivo que puedas medir tu rendimiento en el cálculo de distancias en un espacio n-dimensional.
+> Ten presente un aspecto importante. El Tali te provee la matriz de distancias para que realices el agrupamiento (parte 2 de este mandato). Sin embargo, el Tali también te pide, en la parte 1 de este mandato que, a modo de prueba, calcules la distancia euclidiana para dos pares de provincias elegidos al azar de entre todos los pares posibles. Esto tiene por objetivo que puedas medir tu rendimiento en el cálculo de distancias en un espacio n-dimensional.
 
 > Los cálculos se pueden realizar a mano o con una calculadora del teléfono, utilizando las fórmulas proporcionadas.
 
-1. Usando los datos generados por @martinez2022material, para el conjunto que te tocó (recuerda reservar el conjunto 1 al Tali), obtén la distancia euclidiana entre un par de provincias elegidas por ti al azar (tienes que analizar 6 provincias, elige un par al azar). Haz este cálculo usando todas las dimensiones (atributos) disponibles (doce en total). Ten presente que, para incluir las doce dimensiones, deberás usar la fórmula generalizada de la distancia que verás en el ejemplo práctico, la cual considera un espacio n-dimensional (es decir, sumando los cuadrados de las diferencias entre sus coordenadas correspondientes en cada una de las doce dimensiones, y tomando la raíz cuadrada del resultado). **Esta parte del ejercicio es obligatoria, pero no es imprescindible para realizar la segunda parte**, y lo único que quiero es verificar tu rendimiento para calcular distancias en un espacio n-dimensional, donde n>3. Es decir, no te estoy pidiendo que hagas esta parte 1 para poder hacer la 2. Simplemente, quiero que calcules distancias. Además, ten presente que tu cálculo lo podrás comprobar con el que se encuentra en la matriz de distancias ya calculada.
+> **IMPORTANTE**. Anuncia tu conjunto elegido en el foro, indicando que te refieres a la PD03.
 
-2. Aplica el método de agrupamiento jerárquico aglomerativo promedio no ponderado (UPGMA) para agrupar las provincias según su riqueza relativa de especies por género de bromelias, usando la matriz de distancias provista arriba.
+1. Parte 1 del mandato. Usando los datos generados por @martinez2022material, para el conjunto que te tocó (recuerda reservar el conjunto 1 al Tali), obtén la distancia euclidiana entre un par de provincias elegidas por ti al azar (aunque tendrás que analizar 6 provincias en la parte 2, en este mandato elige un par al azar). Haz este cálculo usando todas las dimensiones (atributos) disponibles (un máximo de doce en total, que coincide con el número de géneros de Bromeliaceae disponibles). Ten presente que, para incluir todas las dimensiones, deberás usar la fórmula generalizada de la distancia que verás en el ejemplo práctico, la cual considera un espacio n-dimensional (es decir, sumando los cuadrados de las diferencias entre sus coordenadas correspondientes en cada una de las dimensiones, y tomando la raíz cuadrada del resultado). **Esta parte del ejercicio es obligatoria, pero no es imprescindible para realizar la segunda parte**, y lo único que quiero es verificar tu rendimiento para calcular distancias en un espacio n-dimensional, donde n>3. Es decir, no te estoy pidiendo que hagas esta parte 1 para poder hacer la 2. Simplemente, quiero que calcules distancias. Además, ten presente que el cómputo final de la distancia lo podrás comprobar con el que se encuentra en la matriz de distancias ya calculada, y que te incluí arriba.
 
-3. Redacta, en un máximo de cuatro párrafos, lo siguiente:
+2. Parte 2 del mandato. Aplica el método de agrupamiento jerárquico aglomerativo promedio no ponderado (UPGMA) para agrupar las provincias según su riqueza relativa de especies por género de bromelias, usando la matriz de distancias provista arriba. Este método de agrupamiento jerárquico te permitirá identificar patrones biogeográficos comunes y diferenciar unidades territoriales en función de su diversidad de géneros de Bromeliaceae. Para realizar este agrupamiento, puedes seguir el ejemplo práctico que te proporciono más abajo. Comprueba que el resultado obtenido coincide con el que te proporcioné al final de este cuaderno, según tu conjunto elegido.
+
+3. Parte 3 del mandado. Consolidando. Redacta, en un máximo de cuatro párrafos, lo siguiente:
 
   - Introducción, en el que podrías incluir importancia del ejercicio, objetivo, justificación.
   - Materiales y métodos, donde resumas que materiales usaste (esto incluye hasta el teléfono móvil, papel, lápiz, etc.), y las técnicas específicas empleadas, que en tu caso son la distancia y el método de agrupamiento enseñado.
   - Resultado, lo cual supone describir, fríamente, lo que obtuviste.
-  - Discusión, donde indiques si alcanzaste el objetivo, interpretes el resultado, indiques las limitaciones y los posibles trabajos futuros.
+  - Discusión, donde indiques si alcanzaste el objetivo, y donde posteriormente interpretas el resultado, indicas las limitaciones y los posibles trabajos futuros.
 
 # Ejemplo práctico
 
-## Parte 1. Calcular distancia entre dos provincias.
+## Demostración de la parte 1 del mandato. Calcular distancia entre dos provincias.
 
 > Recuerda: esta parte es obligatoria, pero no es un imprescindible para realizar la parte 2. Sólo me interesa que verifiques tu rendimiento calculando distancias en un espacio n-dimensional, donde en este caso n=12.
 
@@ -281,11 +318,13 @@ donde:
 d(\text{BAORUCO, INDEPENDENCIA}) = \sqrt{365.04} \approx 19.11
 \]
 
+Si se compara con el valor del par correspondiente en la matriz de distancias incluida arriba, se puede comprobar que el cálculo es correcto, con apenas una centésima de diferencia.
+
 ### Resultado
 
 La distancia euclidiana entre las provincias **BAORUCO** e **INDEPENDENCIA** es aproximadamente **19.11** unidades porcentuales. Esta distancia refleja la magnitud de la diferencia en la distribución de géneros de Bromeliaceae entre las dos provincias consideradas.
 
-## Parte 2. Aplicar el método UPGMA
+## Demostración de la parte 2 del mandato. Aplicar el método UPGMA
 
 Para realizar un agrupamiento jerárquico utilizando el método de agrupamiento jerárquico aglomerativo promedio no ponderado (UPGMA), seguimos un enfoque iterativo que consiste en agrupar los pares de elementos o clusters más cercanos hasta que todos los elementos estén en un único cluster. UPGMA utiliza las distancias promedio entre todos los miembros de los clusters para calcular la distancia entre clusters. [Este vídeo](https://www.youtube.com/watch?v=RdT7bhm1M3E) también podría resultarte útil, aunque en el vídeo, la instructora se basa en el vínculo simple, no en el promedio; es decir, ella, en lugar de obtener promedios a la hora de recalcular la matriz de distancias, lo que obtiene son valores mínimos, pero en nuestro casos serían promedios.
 
@@ -311,13 +350,6 @@ Dado el conjunto de datos del Conjunto 1, su matriz de distancia es:
 |MONTE CRISTI           |  26.65  |     35.70     |          0.00          |     0.00     | 66.33  |     54.01     |
 |SAMANÁ                 |  43.35  |     33.88     |         66.33          |    66.33     |  0.00  |     17.80     |
 |SANTO DOMINGO          |  32.60  |     24.38     |         54.01          |    54.01     | 17.80  |     0.00      |
-
-
-
-
-
-
-
 
 ### Paso 1: Encuentra el par con la distancia más pequeña
 
@@ -451,7 +483,11 @@ El resultado final del proceso es un dendrograma que muestra la estructura jerá
 
 En resumen, el método UPGMA aplicado a las provincias dominicanas revela agrupamientos basados en la similitud de la riqueza relativa de especies de Bromeliaceae. Este enfoque jerárquico facilita la identificación de patrones biogeográficos y destaca las relaciones entre provincias con características comunes, lo que es útil para estudios de biodiversidad y planificación de conservación.
 
-# ¿Cómo se haría el ejemplo práctico en R?
+## Demostración de la parte 3 del mandato. Consolidando.
+
+Redacta, en un máximo de cuatro párrafos, una introducción, materiales y métodos, resultados y discusión de la práctica realizada. No te incluiré una redacción demostrativa aquí, para evitar limitar tu creatividad. Sólo sigue las instrucciones señaladas arriba sobre lo que debes incluir en cada sección.
+
+## ¿Cómo se haría el ejemplo práctico en R?
 
 ```{r, eval = F, echo = T}
 conjuntos_l_1 <- conjuntos_l[[1]]
@@ -459,13 +495,24 @@ dist_conj_1 <- conjuntos_l_1 %>%
   as.data.frame() %>%
   column_to_rownames('nombre') %>%
   dist(diag = T, upper = T)
+```
+
+- Para la parte 1 del mandato, imprimir la matriz de distancias y localizar el par de interés.
+
+```{r, eval = F, echo = T}
+dist_conj_1
+```
+
+- Para la parte 2 del mandato, aplicar el método UPGMA y graficar.
+
+```{r, eval = F, echo = T}
 conj_1_upgma <- hclust(dist_conj_1, method = 'average')
 plot(conj_1_upgma)
 ```
 
-- Todos
+# Solución de la parte 2 del mandato, para todos los conjuntos
 
-```{r, out.width='75%'}
+```{r, fig.width=6, fig.height=6}
 invisible(sapply(names(conjuntos_l),
        function(x) {
          d <- conjuntos_l[[x]] %>% 
@@ -473,7 +520,7 @@ invisible(sapply(names(conjuntos_l),
            column_to_rownames('nombre') %>%
            dist(diag = T, upper = T)
          u <- hclust(d, method = 'average')
-         plot(u, main = x)
+         plot(u, main = x, cex = 0.5)
        }))
 ```
 

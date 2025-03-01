@@ -1,17 +1,18 @@
 Prácticas de aula 3 (PA03). Agrupar provincias según su riqueza relativa
 de especies por géneros de Bromeliaceae<small><br>Biogeografía
 (GEO-131)<br>Universidad Autónoma de Santo Domingo (UASD)<br>Semestre
-2024-02</small>
+2025-01</small>
 ================
 El Tali
-2024-09-03
+2025-03-01
 
 Versión HTML (quizá más legible),
 [aquí](https://biogeografia-master.github.io/agrupamiento-por-riqueza/README.html)
 
 # Fecha/hora de entrega
 
-**04 de septiembre de 2024, 7:59 pm.**
+**[VER PORTAL DE LA
+ASIGNATURA](https://github.com/biogeografia-202501)**
 
 # Introducción
 
@@ -100,7 +101,7 @@ Luego leemos los datos.
 prov <- st_read('data/riqueza_relativa_provincias_sf.gpkg', quiet = T) %>% 
   rename(nombre = TOPONIMIA) %>% select(-PROV, -REG, -ENLACE)
 # Comprobar 100%
-# prov %>% st_drop_geometry() %>% select(-(PROV:ENLACE)) %>% rowSums()
+# prov %>% st_drop_geometry() %>% select(-nombre) %>% rowSums(na.rm = T)
 ```
 
 Una representación cartográfica te ayudará a ver las distribuciones
@@ -141,50 +142,66 @@ maps <- map(variables, function(var) {
 # Combinar los mapas en una sola figura con leyenda común
 combined_map <- plot_grid(plotlist = maps, labels = LETTERS[1:length(maps)], label_size = 10, nrow = 3)
 
-# Mostrar el mapa combinado
-print(combined_map)
+# Guardar el mapa combinado
+ggsave("salidas/riqueza_relativa_provincias.png", combined_map, width = 10, height = 10, dpi = 300)
 ```
 
-<img src="README_files/figure-gfm/unnamed-chunk-6-1.png" width="100%" />
+<img src="salidas/riqueza_relativa_provincias.png" width="100%" />
 
-2.  **Creación de los 20 conjuntos** (reserva el conjunto 1 al Tali). Se
-    han creado 20 conjuntos, cada uno de seis provincias elegidas al
+2.  **Creación de los 30 conjuntos** (reserva el conjunto 1 al Tali). Se
+    han creado 30 conjuntos, cada uno de seis provincias elegidas al
     azar utilizando sus nombres.
 
 ``` r
 prov <- prov %>% filter(nombre != 'HERMANAS MIRABAL')
 set.seed(123)
-replicas <- replicate(20, sample(prov$nombre, 6))
-df <- data.frame(Conjunto = 1:20, t(replicas))
-df %>%
-  unite("Provincias asignadas", X1:X6, sep = ", ") %>% 
+replicas_1 <- replicate(1, sample(prov$nombre, 6))
+set.seed(321)
+replicas_n_1 <- replicate(n_conjuntos - 1, sample(prov$nombre, 6))
+replicas <- cbind(replicas_1, replicas_n_1)
+df <- data.frame(Conjunto = 1:n_conjuntos, t(replicas))
+df_conjuntos <- df %>%
+  unite("Provincias asignadas", X1:X6, sep = ", ")
+df_conjuntos %>% 
   knitr::kable()
 ```
 
-| Conjunto | Provincias asignadas                                                                                         |
-|---------:|:-------------------------------------------------------------------------------------------------------------|
-|        1 | SANTO DOMINGO, MONTE CRISTI, SAMANÁ, MARÍA TRINIDAD SÁNCHEZ, BAORUCO, INDEPENDENCIA                          |
-|        2 | PUERTO PLATA, SAN PEDRO DE MACORÍS, LA ALTAGRACIA, DAJABÓN, SAN CRISTÓBAL, MARÍA TRINIDAD SÁNCHEZ            |
-|        3 | SAN PEDRO DE MACORÍS, SANTIAGO RODRÍGUEZ, VALVERDE, MONSEÑOR NOUEL, DAJABÓN, SAMANÁ                          |
-|        4 | MONSEÑOR NOUEL, SANTIAGO RODRÍGUEZ, MONTE PLATA, SAN JOSÉ DE OCOA, ESPAILLAT, BAORUCO                        |
-|        5 | EL SEIBO, VALVERDE, ELÍAS PIÑA, INDEPENDENCIA, ESPAILLAT, SAMANÁ                                             |
-|        6 | BARAHONA, MARÍA TRINIDAD SÁNCHEZ, PERAVIA, LA ALTAGRACIA, ELÍAS PIÑA, SAN JUAN                               |
-|        7 | LA ROMANA, MONTE CRISTI, INDEPENDENCIA, LA VEGA, ELÍAS PIÑA, ESPAILLAT                                       |
-|        8 | ESPAILLAT, INDEPENDENCIA, SANCHEZ RAMÍREZ, MONSEÑOR NOUEL, SAN JUAN, ELÍAS PIÑA                              |
-|        9 | SAN JUAN, MONSEÑOR NOUEL, DUARTE, SANTIAGO RODRÍGUEZ, AZUA, DAJABÓN                                          |
-|       10 | EL SEIBO, LA ROMANA, LA VEGA, PUERTO PLATA, DISTRITO NACIONAL, SANTIAGO RODRÍGUEZ                            |
-|       11 | MONSEÑOR NOUEL, SANTIAGO RODRÍGUEZ, DUARTE, SAN JUAN, MONTE CRISTI, ESPAILLAT                                |
-|       12 | MONTE CRISTI, VALVERDE, MONTE PLATA, PEDERNALES, SAN CRISTÓBAL, DUARTE                                       |
-|       13 | LA ALTAGRACIA, EL SEIBO, SAN PEDRO DE MACORÍS, HATO MAYOR, ELÍAS PIÑA, PEDERNALES                            |
-|       14 | PERAVIA, SAN PEDRO DE MACORÍS, PUERTO PLATA, SANTO DOMINGO, AZUA, BARAHONA                                   |
-|       15 | LA VEGA, DAJABÓN, SAN PEDRO DE MACORÍS, SAMANÁ, SANTIAGO RODRÍGUEZ, SAN CRISTÓBAL                            |
-|       16 | SAN PEDRO DE MACORÍS, SANTIAGO RODRÍGUEZ, MARÍA TRINIDAD SÁNCHEZ, SAN JOSÉ DE OCOA, SANCHEZ RAMÍREZ, BAORUCO |
-|       17 | EL SEIBO, PEDERNALES, LA ROMANA, SANTIAGO RODRÍGUEZ, MARÍA TRINIDAD SÁNCHEZ, BAORUCO                         |
-|       18 | MARÍA TRINIDAD SÁNCHEZ, HATO MAYOR, ELÍAS PIÑA, BAORUCO, SANCHEZ RAMÍREZ, SAN PEDRO DE MACORÍS               |
-|       19 | VALVERDE, MONTE CRISTI, SAN JUAN, DAJABÓN, EL SEIBO, SAMANÁ                                                  |
-|       20 | INDEPENDENCIA, PUERTO PLATA, SANTO DOMINGO, LA ROMANA, AZUA, HATO MAYOR                                      |
+| Conjunto | Provincias asignadas                                                                           |
+|---------:|:-----------------------------------------------------------------------------------------------|
+|        1 | SANTO DOMINGO, MONTE CRISTI, SAMANÁ, MARÍA TRINIDAD SÁNCHEZ, BAORUCO, INDEPENDENCIA            |
+|        2 | SAN PEDRO DE MACORÍS, PUERTO PLATA, HATO MAYOR, LA VEGA, SANTIAGO RODRÍGUEZ, SANTIAGO          |
+|        3 | PEDERNALES, VALVERDE, PERAVIA, BARAHONA, MONTE CRISTI, LA ALTAGRACIA                           |
+|        4 | SANTIAGO RODRÍGUEZ, MONTE PLATA, PUERTO PLATA, SAN PEDRO DE MACORÍS, MONTE CRISTI, ESPAILLAT   |
+|        5 | AZUA, LA ALTAGRACIA, PUERTO PLATA, BARAHONA, MARÍA TRINIDAD SÁNCHEZ, SANCHEZ RAMÍREZ           |
+|        6 | AZUA, BARAHONA, SAN CRISTÓBAL, SAN JOSÉ DE OCOA, PEDERNALES, SAMANÁ                            |
+|        7 | PEDERNALES, SAN JOSÉ DE OCOA, LA VEGA, MONTE PLATA, HATO MAYOR, SANTO DOMINGO                  |
+|        8 | SANCHEZ RAMÍREZ, DISTRITO NACIONAL, ESPAILLAT, MONSEÑOR NOUEL, MARÍA TRINIDAD SÁNCHEZ, LA VEGA |
+|        9 | ELÍAS PIÑA, SAN JOSÉ DE OCOA, PERAVIA, VALVERDE, EL SEIBO, ESPAILLAT                           |
+|       10 | MONTE CRISTI, DUARTE, HATO MAYOR, BAORUCO, ESPAILLAT, BARAHONA                                 |
+|       11 | PEDERNALES, MARÍA TRINIDAD SÁNCHEZ, DISTRITO NACIONAL, LA VEGA, MONTE CRISTI, ELÍAS PIÑA       |
+|       12 | BAORUCO, LA VEGA, SANTO DOMINGO, SAN CRISTÓBAL, PUERTO PLATA, SAN PEDRO DE MACORÍS             |
+|       13 | LA VEGA, SANTO DOMINGO, BAORUCO, ESPAILLAT, LA ROMANA, DISTRITO NACIONAL                       |
+|       14 | VALVERDE, BAORUCO, MONTE CRISTI, SANTIAGO, HATO MAYOR, SAN JUAN                                |
+|       15 | SANTO DOMINGO, VALVERDE, SAN CRISTÓBAL, HATO MAYOR, AZUA, SAN JOSÉ DE OCOA                     |
+|       16 | SANCHEZ RAMÍREZ, DUARTE, BAORUCO, LA VEGA, SANTIAGO RODRÍGUEZ, SAN PEDRO DE MACORÍS            |
+|       17 | SANCHEZ RAMÍREZ, PUERTO PLATA, MARÍA TRINIDAD SÁNCHEZ, LA ROMANA, HATO MAYOR, SANTO DOMINGO    |
+|       18 | LA VEGA, EL SEIBO, PERAVIA, MONTE CRISTI, SAN JUAN, PUERTO PLATA                               |
+|       19 | MARÍA TRINIDAD SÁNCHEZ, MONTE CRISTI, SANTIAGO RODRÍGUEZ, SAN JOSÉ DE OCOA, SAMANÁ, BARAHONA   |
+|       20 | AZUA, ESPAILLAT, ELÍAS PIÑA, LA VEGA, SAMANÁ, MONTE PLATA                                      |
+|       21 | MONTE PLATA, SAN JOSÉ DE OCOA, AZUA, MARÍA TRINIDAD SÁNCHEZ, BAORUCO, SANCHEZ RAMÍREZ          |
+|       22 | DISTRITO NACIONAL, LA VEGA, SAN JUAN, DUARTE, BAORUCO, HATO MAYOR                              |
+|       23 | PEDERNALES, DAJABÓN, BAORUCO, EL SEIBO, MONSEÑOR NOUEL, SANCHEZ RAMÍREZ                        |
+|       24 | PUERTO PLATA, LA ALTAGRACIA, MONTE CRISTI, ELÍAS PIÑA, PERAVIA, SANTO DOMINGO                  |
+|       25 | PEDERNALES, SAN PEDRO DE MACORÍS, BARAHONA, LA VEGA, MONTE PLATA, BAORUCO                      |
+|       26 | DAJABÓN, LA ALTAGRACIA, BARAHONA, VALVERDE, PEDERNALES, LA VEGA                                |
+|       27 | SAMANÁ, LA ROMANA, PERAVIA, MARÍA TRINIDAD SÁNCHEZ, SAN PEDRO DE MACORÍS, AZUA                 |
+|       28 | SAMANÁ, SAN JUAN, SANTO DOMINGO, MARÍA TRINIDAD SÁNCHEZ, BARAHONA, BAORUCO                     |
+|       29 | SANTIAGO, SAN JOSÉ DE OCOA, LA ALTAGRACIA, MONSEÑOR NOUEL, MONTE PLATA, LA VEGA                |
+|       30 | DUARTE, SANCHEZ RAMÍREZ, LA VEGA, SAN JUAN, EL SEIBO, DISTRITO NACIONAL                        |
 
-3.  **Presentación de los datos crudos de cada uno de los 20
+**Nota: Todos los conjuntos de provincias son únicos.**
+
+3.  **Presentación de los datos crudos de cada uno de los 30
     conjuntos**. Esta matriz contiene la riqueza relativa (en tanto por
     ciento) de especies de bromelias según género de la base de datos
     GBIF (GBIF.org 2024). Con esta matriz podrás hacer un cálculo de
@@ -196,7 +213,7 @@ conjuntos_l <- sapply(1:ncol(replicas),
          prov %>%
          filter(nombre %in% replicas[, x]) %>% st_drop_geometry(),
        simplify = F) %>%
-  setNames(paste0('Conjunto ', 1:20))
+  setNames(paste0('Conjunto ', 1:n_conjuntos))
 conjuntos_l_k <- lapply(
   conjuntos_l,
   function(x) {
@@ -227,214 +244,324 @@ Conjunto 1
 
 Conjunto 2
 
-|         nombre         | Bromelia | Catopsis | Tillandsia | Guzmania | Pitcairnia | Racinaea | Aechmea | Ananas | Cipuropsis | Werauhia | Zizkaea | Billbergia |
-|:----------------------:|:--------:|:--------:|:----------:|:--------:|:----------:|:--------:|:-------:|:------:|:----------:|:--------:|:-------:|:----------:|
-|        DAJABÓN         |   0.00   |   0.00   |   100.00   |   0.00   |    0.00    |    0     |    0    |  0.00  |     0      |    0     |  0.00   |    0.00    |
-|     LA ALTAGRACIA      |   7.69   |   0.00   |   76.92    |  15.38   |    0.00    |    0     |    0    |  0.00  |     0      |    0     |  0.00   |    0.00    |
-| MARÍA TRINIDAD SÁNCHEZ |   0.00   |   0.00   |   100.00   |   0.00   |    0.00    |    0     |    0    |  0.00  |     0      |    0     |  0.00   |    0.00    |
-|      PUERTO PLATA      |   7.14   |  14.29   |   57.14    |   7.14   |    7.14    |    0     |    0    |  0.00  |     0      |    0     |  0.00   |    7.14    |
-|     SAN CRISTÓBAL      |   6.25   |   0.00   |   68.75    |   6.25   |    6.25    |    0     |    0    |  6.25  |     0      |    0     |  6.25   |    0.00    |
-|  SAN PEDRO DE MACORÍS  |  25.00   |   0.00   |   75.00    |   0.00   |    0.00    |    0     |    0    |  0.00  |     0      |    0     |  0.00   |    0.00    |
+|        nombre        | Bromelia | Catopsis | Tillandsia | Guzmania | Pitcairnia | Racinaea | Aechmea | Ananas | Cipuropsis | Werauhia | Zizkaea | Billbergia |
+|:--------------------:|:--------:|:--------:|:----------:|:--------:|:----------:|:--------:|:-------:|:------:|:----------:|:--------:|:-------:|:----------:|
+|       LA VEGA        |   0.00   |   8.33   |   61.11    |   2.78   |    8.33    |   8.33   |    0    |   0    |    2.78    |   5.56   |  2.78   |    0.00    |
+|     PUERTO PLATA     |   7.14   |  14.29   |   57.14    |   7.14   |    7.14    |   0.00   |    0    |   0    |    0.00    |   0.00   |  0.00   |    7.14    |
+| SAN PEDRO DE MACORÍS |  25.00   |   0.00   |   75.00    |   0.00   |    0.00    |   0.00   |    0    |   0    |    0.00    |   0.00   |  0.00   |    0.00    |
+|       SANTIAGO       |   6.67   |  13.33   |   60.00    |  20.00   |    0.00    |   0.00   |    0    |   0    |    0.00    |   0.00   |  0.00   |    0.00    |
+|  SANTIAGO RODRÍGUEZ  |   0.00   |   9.09   |   90.91    |   0.00   |    0.00    |   0.00   |    0    |   0    |    0.00    |   0.00   |  0.00   |    0.00    |
+|      HATO MAYOR      |   0.00   |  10.00   |   65.00    |   0.00   |   10.00    |   0.00   |    0    |   5    |    0.00    |   5.00   |  5.00   |    0.00    |
 
 Conjunto 3
 
-|        nombre        | Bromelia | Catopsis | Tillandsia | Guzmania | Pitcairnia | Racinaea | Aechmea | Ananas | Cipuropsis | Werauhia | Zizkaea | Billbergia |
-|:--------------------:|:--------:|:--------:|:----------:|:--------:|:----------:|:--------:|:-------:|:------:|:----------:|:--------:|:-------:|:----------:|
-|       DAJABÓN        |   0.00   |   0.00   |   100.00   |   0.00   |    0.00    |    0     |    0    |   0    |     0      |   0.00   |  0.00   |     0      |
-|        SAMANÁ        |   0.00   |  10.00   |   40.00    |  10.00   |   20.00    |    0     |    0    |   10   |     0      |   0.00   |  10.00  |     0      |
-| SAN PEDRO DE MACORÍS |  25.00   |   0.00   |   75.00    |   0.00   |    0.00    |    0     |    0    |   0    |     0      |   0.00   |  0.00   |     0      |
-|  SANTIAGO RODRÍGUEZ  |   0.00   |   9.09   |   90.91    |   0.00   |    0.00    |    0     |    0    |   0    |     0      |   0.00   |  0.00   |     0      |
-|       VALVERDE       |   0.00   |  14.29   |   71.43    |   0.00   |   14.29    |    0     |    0    |   0    |     0      |   0.00   |  0.00   |     0      |
-|    MONSEÑOR NOUEL    |   4.35   |  13.04   |   56.52    |   4.35   |   13.04    |    0     |    0    |   0    |     0      |   4.35   |  4.35   |     0      |
+|    nombre     | Bromelia | Catopsis | Tillandsia | Guzmania | Pitcairnia | Racinaea | Aechmea | Ananas | Cipuropsis | Werauhia | Zizkaea | Billbergia |
+|:-------------:|:--------:|:--------:|:----------:|:--------:|:----------:|:--------:|:-------:|:------:|:----------:|:--------:|:-------:|:----------:|
+|   BARAHONA    |   0.00   |  10.34   |   51.72    |  10.34   |   10.34    |   3.45   |  3.45   |  3.45  |    3.45    |   3.45   |    0    |     0      |
+| LA ALTAGRACIA |   7.69   |   0.00   |   76.92    |  15.38   |    0.00    |   0.00   |  0.00   |  0.00  |    0.00    |   0.00   |    0    |     0      |
+| MONTE CRISTI  |   0.00   |   0.00   |   100.00   |   0.00   |    0.00    |   0.00   |  0.00   |  0.00  |    0.00    |   0.00   |    0    |     0      |
+|  PEDERNALES   |   0.00   |   6.67   |   80.00    |   0.00   |   13.33    |   0.00   |  0.00   |  0.00  |    0.00    |   0.00   |    0    |     0      |
+|    PERAVIA    |   0.00   |  11.11   |   77.78    |  11.11   |    0.00    |   0.00   |  0.00   |  0.00  |    0.00    |   0.00   |    0    |     0      |
+|   VALVERDE    |   0.00   |  14.29   |   71.43    |   0.00   |   14.29    |   0.00   |  0.00   |  0.00  |    0.00    |   0.00   |    0    |     0      |
 
 Conjunto 4
 
-|       nombre       | Bromelia | Catopsis | Tillandsia | Guzmania | Pitcairnia | Racinaea | Aechmea | Ananas | Cipuropsis | Werauhia | Zizkaea | Billbergia |
-|:------------------:|:--------:|:--------:|:----------:|:--------:|:----------:|:--------:|:-------:|:------:|:----------:|:--------:|:-------:|:----------:|
-|      BAORUCO       |   0.00   |   0.00   |   76.92    |   7.69   |    7.69    |   7.69   |  0.00   |   0    |    0.00    |   0.00   |  0.00   |     0      |
-|     ESPAILLAT      |   0.00   |   8.33   |   66.67    |   8.33   |    0.00    |   8.33   |  8.33   |   0    |    0.00    |   0.00   |  0.00   |     0      |
-| SANTIAGO RODRÍGUEZ |   0.00   |   9.09   |   90.91    |   0.00   |    0.00    |   0.00   |  0.00   |   0    |    0.00    |   0.00   |  0.00   |     0      |
-|   MONSEÑOR NOUEL   |   4.35   |  13.04   |   56.52    |   4.35   |   13.04    |   0.00   |  0.00   |   0    |    0.00    |   4.35   |  4.35   |     0      |
-|    MONTE PLATA     |  12.50   |  12.50   |   75.00    |   0.00   |    0.00    |   0.00   |  0.00   |   0    |    0.00    |   0.00   |  0.00   |     0      |
-|  SAN JOSÉ DE OCOA  |   0.00   |   2.94   |   67.65    |   8.82   |    8.82    |   5.88   |  0.00   |   0    |    2.94    |   2.94   |  0.00   |     0      |
+|        nombre        | Bromelia | Catopsis | Tillandsia | Guzmania | Pitcairnia | Racinaea | Aechmea | Ananas | Cipuropsis | Werauhia | Zizkaea | Billbergia |
+|:--------------------:|:--------:|:--------:|:----------:|:--------:|:----------:|:--------:|:-------:|:------:|:----------:|:--------:|:-------:|:----------:|
+|      ESPAILLAT       |   0.00   |   8.33   |   66.67    |   8.33   |    0.00    |   8.33   |  8.33   |   0    |     0      |    0     |    0    |    0.00    |
+|     MONTE CRISTI     |   0.00   |   0.00   |   100.00   |   0.00   |    0.00    |   0.00   |  0.00   |   0    |     0      |    0     |    0    |    0.00    |
+|     PUERTO PLATA     |   7.14   |  14.29   |   57.14    |   7.14   |    7.14    |   0.00   |  0.00   |   0    |     0      |    0     |    0    |    7.14    |
+| SAN PEDRO DE MACORÍS |  25.00   |   0.00   |   75.00    |   0.00   |    0.00    |   0.00   |  0.00   |   0    |     0      |    0     |    0    |    0.00    |
+|  SANTIAGO RODRÍGUEZ  |   0.00   |   9.09   |   90.91    |   0.00   |    0.00    |   0.00   |  0.00   |   0    |     0      |    0     |    0    |    0.00    |
+|     MONTE PLATA      |  12.50   |  12.50   |   75.00    |   0.00   |    0.00    |   0.00   |  0.00   |   0    |     0      |    0     |    0    |    0.00    |
 
 Conjunto 5
 
-|    nombre     | Bromelia | Catopsis | Tillandsia | Guzmania | Pitcairnia | Racinaea | Aechmea | Ananas | Cipuropsis | Werauhia | Zizkaea | Billbergia |
-|:-------------:|:--------:|:--------:|:----------:|:--------:|:----------:|:--------:|:-------:|:------:|:----------:|:--------:|:-------:|:----------:|
-|  ELÍAS PIÑA   |    0     |   6.25   |   68.75    |   0.00   |    6.25    |  12.50   |  0.00   |   0    |     0      |   6.25   |  0.00   |     0      |
-|   EL SEIBO    |    0     |  20.00   |   40.00    |  20.00   |    0.00    |   0.00   |  20.00  |   0    |     0      |   0.00   |  0.00   |     0      |
-|   ESPAILLAT   |    0     |   8.33   |   66.67    |   8.33   |    0.00    |   8.33   |  8.33   |   0    |     0      |   0.00   |  0.00   |     0      |
-| INDEPENDENCIA |    0     |  10.53   |   68.42    |   0.00   |   10.53    |   0.00   |  0.00   |   0    |     0      |   5.26   |  5.26   |     0      |
-|    SAMANÁ     |    0     |  10.00   |   40.00    |  10.00   |   20.00    |   0.00   |  0.00   |   10   |     0      |   0.00   |  10.00  |     0      |
-|   VALVERDE    |    0     |  14.29   |   71.43    |   0.00   |   14.29    |   0.00   |  0.00   |   0    |     0      |   0.00   |  0.00   |     0      |
+|         nombre         | Bromelia | Catopsis | Tillandsia | Guzmania | Pitcairnia | Racinaea | Aechmea | Ananas | Cipuropsis | Werauhia | Zizkaea | Billbergia |
+|:----------------------:|:--------:|:--------:|:----------:|:--------:|:----------:|:--------:|:-------:|:------:|:----------:|:--------:|:-------:|:----------:|
+|          AZUA          |   5.88   |   5.88   |   88.24    |   0.00   |    0.00    |   0.00   |  0.00   |  0.00  |    0.00    |   0.00   |    0    |    0.00    |
+|        BARAHONA        |   0.00   |  10.34   |   51.72    |  10.34   |   10.34    |   3.45   |  3.45   |  3.45  |    3.45    |   3.45   |    0    |    0.00    |
+|     LA ALTAGRACIA      |   7.69   |   0.00   |   76.92    |  15.38   |    0.00    |   0.00   |  0.00   |  0.00  |    0.00    |   0.00   |    0    |    0.00    |
+| MARÍA TRINIDAD SÁNCHEZ |   0.00   |   0.00   |   100.00   |   0.00   |    0.00    |   0.00   |  0.00   |  0.00  |    0.00    |   0.00   |    0    |    0.00    |
+|      PUERTO PLATA      |   7.14   |  14.29   |   57.14    |   7.14   |    7.14    |   0.00   |  0.00   |  0.00  |    0.00    |   0.00   |    0    |    7.14    |
+|    SANCHEZ RAMÍREZ     |   0.00   |   0.00   |   85.71    |  14.29   |    0.00    |   0.00   |  0.00   |  0.00  |    0.00    |   0.00   |    0    |    0.00    |
 
 Conjunto 6
 
-|         nombre         | Bromelia | Catopsis | Tillandsia | Guzmania | Pitcairnia | Racinaea | Aechmea | Ananas | Cipuropsis | Werauhia | Zizkaea | Billbergia |
-|:----------------------:|:--------:|:--------:|:----------:|:--------:|:----------:|:--------:|:-------:|:------:|:----------:|:--------:|:-------:|:----------:|
-|        BARAHONA        |   0.00   |  10.34   |   51.72    |  10.34   |   10.34    |   3.45   |  3.45   |  3.45  |    3.45    |   3.45   |    0    |     0      |
-|       ELÍAS PIÑA       |   0.00   |   6.25   |   68.75    |   0.00   |    6.25    |  12.50   |  0.00   |  0.00  |    0.00    |   6.25   |    0    |     0      |
-|     LA ALTAGRACIA      |   7.69   |   0.00   |   76.92    |  15.38   |    0.00    |   0.00   |  0.00   |  0.00  |    0.00    |   0.00   |    0    |     0      |
-| MARÍA TRINIDAD SÁNCHEZ |   0.00   |   0.00   |   100.00   |   0.00   |    0.00    |   0.00   |  0.00   |  0.00  |    0.00    |   0.00   |    0    |     0      |
-|        PERAVIA         |   0.00   |  11.11   |   77.78    |  11.11   |    0.00    |   0.00   |  0.00   |  0.00  |    0.00    |   0.00   |    0    |     0      |
-|        SAN JUAN        |   0.00   |  11.11   |   66.67    |   0.00   |   16.67    |   0.00   |  0.00   |  0.00  |    0.00    |   5.56   |    0    |     0      |
+|      nombre      | Bromelia | Catopsis | Tillandsia | Guzmania | Pitcairnia | Racinaea | Aechmea | Ananas | Cipuropsis | Werauhia | Zizkaea | Billbergia |
+|:----------------:|:--------:|:--------:|:----------:|:--------:|:----------:|:--------:|:-------:|:------:|:----------:|:--------:|:-------:|:----------:|
+|       AZUA       |   5.88   |   5.88   |   88.24    |   0.00   |    0.00    |   0.00   |  0.00   |  0.00  |    0.00    |   0.00   |  0.00   |     0      |
+|     BARAHONA     |   0.00   |  10.34   |   51.72    |  10.34   |   10.34    |   3.45   |  3.45   |  3.45  |    3.45    |   3.45   |  0.00   |     0      |
+|    PEDERNALES    |   0.00   |   6.67   |   80.00    |   0.00   |   13.33    |   0.00   |  0.00   |  0.00  |    0.00    |   0.00   |  0.00   |     0      |
+|      SAMANÁ      |   0.00   |  10.00   |   40.00    |  10.00   |   20.00    |   0.00   |  0.00   | 10.00  |    0.00    |   0.00   |  10.00  |     0      |
+|  SAN CRISTÓBAL   |   6.25   |   0.00   |   68.75    |   6.25   |    6.25    |   0.00   |  0.00   |  6.25  |    0.00    |   0.00   |  6.25   |     0      |
+| SAN JOSÉ DE OCOA |   0.00   |   2.94   |   67.65    |   8.82   |    8.82    |   5.88   |  0.00   |  0.00  |    2.94    |   2.94   |  0.00   |     0      |
 
 Conjunto 7
 
-|    nombre     | Bromelia | Catopsis | Tillandsia | Guzmania | Pitcairnia | Racinaea | Aechmea | Ananas | Cipuropsis | Werauhia | Zizkaea | Billbergia |
-|:-------------:|:--------:|:--------:|:----------:|:--------:|:----------:|:--------:|:-------:|:------:|:----------:|:--------:|:-------:|:----------:|
-|  ELÍAS PIÑA   |   0.0    |   6.25   |   68.75    |   0.00   |    6.25    |  12.50   |  0.00   |   0    |    0.00    |   6.25   |  0.00   |     0      |
-|   ESPAILLAT   |   0.0    |   8.33   |   66.67    |   8.33   |    0.00    |   8.33   |  8.33   |   0    |    0.00    |   0.00   |  0.00   |     0      |
-| INDEPENDENCIA |   0.0    |  10.53   |   68.42    |   0.00   |   10.53    |   0.00   |  0.00   |   0    |    0.00    |   5.26   |  5.26   |     0      |
-|   LA ROMANA   |   12.5   |   0.00   |   75.00    |   0.00   |    0.00    |   0.00   |  12.50  |   0    |    0.00    |   0.00   |  0.00   |     0      |
-|    LA VEGA    |   0.0    |   8.33   |   61.11    |   2.78   |    8.33    |   8.33   |  0.00   |   0    |    2.78    |   5.56   |  2.78   |     0      |
-| MONTE CRISTI  |   0.0    |   0.00   |   100.00   |   0.00   |    0.00    |   0.00   |  0.00   |   0    |    0.00    |   0.00   |  0.00   |     0      |
+|      nombre      | Bromelia | Catopsis | Tillandsia | Guzmania | Pitcairnia | Racinaea | Aechmea | Ananas | Cipuropsis | Werauhia | Zizkaea | Billbergia |
+|:----------------:|:--------:|:--------:|:----------:|:--------:|:----------:|:--------:|:-------:|:------:|:----------:|:--------:|:-------:|:----------:|
+|     LA VEGA      |   0.00   |   8.33   |   61.11    |   2.78   |    8.33    |   8.33   |    0    |  0.00  |    2.78    |   5.56   |  2.78   |     0      |
+|    PEDERNALES    |   0.00   |   6.67   |   80.00    |   0.00   |   13.33    |   0.00   |    0    |  0.00  |    0.00    |   0.00   |  0.00   |     0      |
+|   MONTE PLATA    |  12.50   |  12.50   |   75.00    |   0.00   |    0.00    |   0.00   |    0    |  0.00  |    0.00    |   0.00   |  0.00   |     0      |
+|    HATO MAYOR    |   0.00   |  10.00   |   65.00    |   0.00   |   10.00    |   0.00   |    0    |  5.00  |    0.00    |   5.00   |  5.00   |     0      |
+| SAN JOSÉ DE OCOA |   0.00   |   2.94   |   67.65    |   8.82   |    8.82    |   5.88   |    0    |  0.00  |    2.94    |   2.94   |  0.00   |     0      |
+|  SANTO DOMINGO   |   8.33   |   8.33   |   50.00    |   8.33   |    8.33    |   0.00   |    0    |  8.33  |    0.00    |   0.00   |  8.33   |     0      |
 
 Conjunto 8
 
-|     nombre      | Bromelia | Catopsis | Tillandsia | Guzmania | Pitcairnia | Racinaea | Aechmea | Ananas | Cipuropsis | Werauhia | Zizkaea | Billbergia |
-|:---------------:|:--------:|:--------:|:----------:|:--------:|:----------:|:--------:|:-------:|:------:|:----------:|:--------:|:-------:|:----------:|
-|   ELÍAS PIÑA    |   0.00   |   6.25   |   68.75    |   0.00   |    6.25    |  12.50   |  0.00   |   0    |     0      |   6.25   |  0.00   |     0      |
-|    ESPAILLAT    |   0.00   |   8.33   |   66.67    |   8.33   |    0.00    |   8.33   |  8.33   |   0    |     0      |   0.00   |  0.00   |     0      |
-|  INDEPENDENCIA  |   0.00   |  10.53   |   68.42    |   0.00   |   10.53    |   0.00   |  0.00   |   0    |     0      |   5.26   |  5.26   |     0      |
-|    SAN JUAN     |   0.00   |  11.11   |   66.67    |   0.00   |   16.67    |   0.00   |  0.00   |   0    |     0      |   5.56   |  0.00   |     0      |
-| SANCHEZ RAMÍREZ |   0.00   |   0.00   |   85.71    |  14.29   |    0.00    |   0.00   |  0.00   |   0    |     0      |   0.00   |  0.00   |     0      |
-| MONSEÑOR NOUEL  |   4.35   |  13.04   |   56.52    |   4.35   |   13.04    |   0.00   |  0.00   |   0    |     0      |   4.35   |  4.35   |     0      |
+|         nombre         | Bromelia | Catopsis | Tillandsia | Guzmania | Pitcairnia | Racinaea | Aechmea | Ananas | Cipuropsis | Werauhia | Zizkaea | Billbergia |
+|:----------------------:|:--------:|:--------:|:----------:|:--------:|:----------:|:--------:|:-------:|:------:|:----------:|:--------:|:-------:|:----------:|
+|   DISTRITO NACIONAL    |   0.00   |   0.00   |   100.00   |   0.00   |    0.00    |   0.00   |  0.00   |   0    |    0.00    |   0.00   |  0.00   |     0      |
+|       ESPAILLAT        |   0.00   |   8.33   |   66.67    |   8.33   |    0.00    |   8.33   |  8.33   |   0    |    0.00    |   0.00   |  0.00   |     0      |
+|        LA VEGA         |   0.00   |   8.33   |   61.11    |   2.78   |    8.33    |   8.33   |  0.00   |   0    |    2.78    |   5.56   |  2.78   |     0      |
+| MARÍA TRINIDAD SÁNCHEZ |   0.00   |   0.00   |   100.00   |   0.00   |    0.00    |   0.00   |  0.00   |   0    |    0.00    |   0.00   |  0.00   |     0      |
+|    SANCHEZ RAMÍREZ     |   0.00   |   0.00   |   85.71    |  14.29   |    0.00    |   0.00   |  0.00   |   0    |    0.00    |   0.00   |  0.00   |     0      |
+|     MONSEÑOR NOUEL     |   4.35   |  13.04   |   56.52    |   4.35   |   13.04    |   0.00   |  0.00   |   0    |    0.00    |   4.35   |  4.35   |     0      |
 
 Conjunto 9
 
-|       nombre       | Bromelia | Catopsis | Tillandsia | Guzmania | Pitcairnia | Racinaea | Aechmea | Ananas | Cipuropsis | Werauhia | Zizkaea | Billbergia |
-|:------------------:|:--------:|:--------:|:----------:|:--------:|:----------:|:--------:|:-------:|:------:|:----------:|:--------:|:-------:|:----------:|
-|        AZUA        |   5.88   |   5.88   |   88.24    |   0.00   |    0.00    |    0     |    0    |  0.00  |     0      |   0.00   |  0.00   |     0      |
-|      DAJABÓN       |   0.00   |   0.00   |   100.00   |   0.00   |    0.00    |    0     |    0    |  0.00  |     0      |   0.00   |  0.00   |     0      |
-|       DUARTE       |   0.00   |   0.00   |   50.00    |  33.33   |    0.00    |    0     |    0    | 16.67  |     0      |   0.00   |  0.00   |     0      |
-|      SAN JUAN      |   0.00   |  11.11   |   66.67    |   0.00   |   16.67    |    0     |    0    |  0.00  |     0      |   5.56   |  0.00   |     0      |
-| SANTIAGO RODRÍGUEZ |   0.00   |   9.09   |   90.91    |   0.00   |    0.00    |    0     |    0    |  0.00  |     0      |   0.00   |  0.00   |     0      |
-|   MONSEÑOR NOUEL   |   4.35   |  13.04   |   56.52    |   4.35   |   13.04    |    0     |    0    |  0.00  |     0      |   4.35   |  4.35   |     0      |
+|      nombre      | Bromelia | Catopsis | Tillandsia | Guzmania | Pitcairnia | Racinaea | Aechmea | Ananas | Cipuropsis | Werauhia | Zizkaea | Billbergia |
+|:----------------:|:--------:|:--------:|:----------:|:--------:|:----------:|:--------:|:-------:|:------:|:----------:|:--------:|:-------:|:----------:|
+|    ELÍAS PIÑA    |    0     |   6.25   |   68.75    |   0.00   |    6.25    |  12.50   |  0.00   |   0    |    0.00    |   6.25   |    0    |     0      |
+|     EL SEIBO     |    0     |  20.00   |   40.00    |  20.00   |    0.00    |   0.00   |  20.00  |   0    |    0.00    |   0.00   |    0    |     0      |
+|    ESPAILLAT     |    0     |   8.33   |   66.67    |   8.33   |    0.00    |   8.33   |  8.33   |   0    |    0.00    |   0.00   |    0    |     0      |
+|     PERAVIA      |    0     |  11.11   |   77.78    |  11.11   |    0.00    |   0.00   |  0.00   |   0    |    0.00    |   0.00   |    0    |     0      |
+|     VALVERDE     |    0     |  14.29   |   71.43    |   0.00   |   14.29    |   0.00   |  0.00   |   0    |    0.00    |   0.00   |    0    |     0      |
+| SAN JOSÉ DE OCOA |    0     |   2.94   |   67.65    |   8.82   |    8.82    |   5.88   |  0.00   |   0    |    2.94    |   2.94   |    0    |     0      |
 
 Conjunto 10
 
-|       nombre       | Bromelia | Catopsis | Tillandsia | Guzmania | Pitcairnia | Racinaea | Aechmea | Ananas | Cipuropsis | Werauhia | Zizkaea | Billbergia |
-|:------------------:|:--------:|:--------:|:----------:|:--------:|:----------:|:--------:|:-------:|:------:|:----------:|:--------:|:-------:|:----------:|
-| DISTRITO NACIONAL  |   0.00   |   0.00   |   100.00   |   0.00   |    0.00    |   0.00   |   0.0   |   0    |    0.00    |   0.00   |  0.00   |    0.00    |
-|      EL SEIBO      |   0.00   |  20.00   |   40.00    |  20.00   |    0.00    |   0.00   |  20.0   |   0    |    0.00    |   0.00   |  0.00   |    0.00    |
-|     LA ROMANA      |  12.50   |   0.00   |   75.00    |   0.00   |    0.00    |   0.00   |  12.5   |   0    |    0.00    |   0.00   |  0.00   |    0.00    |
-|      LA VEGA       |   0.00   |   8.33   |   61.11    |   2.78   |    8.33    |   8.33   |   0.0   |   0    |    2.78    |   5.56   |  2.78   |    0.00    |
-|    PUERTO PLATA    |   7.14   |  14.29   |   57.14    |   7.14   |    7.14    |   0.00   |   0.0   |   0    |    0.00    |   0.00   |  0.00   |    7.14    |
-| SANTIAGO RODRÍGUEZ |   0.00   |   9.09   |   90.91    |   0.00   |    0.00    |   0.00   |   0.0   |   0    |    0.00    |   0.00   |  0.00   |    0.00    |
+|    nombre    | Bromelia | Catopsis | Tillandsia | Guzmania | Pitcairnia | Racinaea | Aechmea | Ananas | Cipuropsis | Werauhia | Zizkaea | Billbergia |
+|:------------:|:--------:|:--------:|:----------:|:--------:|:----------:|:--------:|:-------:|:------:|:----------:|:--------:|:-------:|:----------:|
+|   BAORUCO    |    0     |   0.00   |   76.92    |   7.69   |    7.69    |   7.69   |  0.00   |  0.00  |    0.00    |   0.00   |    0    |     0      |
+|   BARAHONA   |    0     |  10.34   |   51.72    |  10.34   |   10.34    |   3.45   |  3.45   |  3.45  |    3.45    |   3.45   |    0    |     0      |
+|    DUARTE    |    0     |   0.00   |   50.00    |  33.33   |    0.00    |   0.00   |  0.00   | 16.67  |    0.00    |   0.00   |    0    |     0      |
+|  ESPAILLAT   |    0     |   8.33   |   66.67    |   8.33   |    0.00    |   8.33   |  8.33   |  0.00  |    0.00    |   0.00   |    0    |     0      |
+| MONTE CRISTI |    0     |   0.00   |   100.00   |   0.00   |    0.00    |   0.00   |  0.00   |  0.00  |    0.00    |   0.00   |    0    |     0      |
+|  HATO MAYOR  |    0     |  10.00   |   65.00    |   0.00   |   10.00    |   0.00   |  0.00   |  5.00  |    0.00    |   5.00   |    5    |     0      |
 
 Conjunto 11
 
-|       nombre       | Bromelia | Catopsis | Tillandsia | Guzmania | Pitcairnia | Racinaea | Aechmea | Ananas | Cipuropsis | Werauhia | Zizkaea | Billbergia |
-|:------------------:|:--------:|:--------:|:----------:|:--------:|:----------:|:--------:|:-------:|:------:|:----------:|:--------:|:-------:|:----------:|
-|       DUARTE       |   0.00   |   0.00   |   50.00    |  33.33   |    0.00    |   0.00   |  0.00   | 16.67  |     0      |   0.00   |  0.00   |     0      |
-|     ESPAILLAT      |   0.00   |   8.33   |   66.67    |   8.33   |    0.00    |   8.33   |  8.33   |  0.00  |     0      |   0.00   |  0.00   |     0      |
-|    MONTE CRISTI    |   0.00   |   0.00   |   100.00   |   0.00   |    0.00    |   0.00   |  0.00   |  0.00  |     0      |   0.00   |  0.00   |     0      |
-|      SAN JUAN      |   0.00   |  11.11   |   66.67    |   0.00   |   16.67    |   0.00   |  0.00   |  0.00  |     0      |   5.56   |  0.00   |     0      |
-| SANTIAGO RODRÍGUEZ |   0.00   |   9.09   |   90.91    |   0.00   |    0.00    |   0.00   |  0.00   |  0.00  |     0      |   0.00   |  0.00   |     0      |
-|   MONSEÑOR NOUEL   |   4.35   |  13.04   |   56.52    |   4.35   |   13.04    |   0.00   |  0.00   |  0.00  |     0      |   4.35   |  4.35   |     0      |
+|         nombre         | Bromelia | Catopsis | Tillandsia | Guzmania | Pitcairnia | Racinaea | Aechmea | Ananas | Cipuropsis | Werauhia | Zizkaea | Billbergia |
+|:----------------------:|:--------:|:--------:|:----------:|:--------:|:----------:|:--------:|:-------:|:------:|:----------:|:--------:|:-------:|:----------:|
+|   DISTRITO NACIONAL    |    0     |   0.00   |   100.00   |   0.00   |    0.00    |   0.00   |    0    |   0    |    0.00    |   0.00   |  0.00   |     0      |
+|       ELÍAS PIÑA       |    0     |   6.25   |   68.75    |   0.00   |    6.25    |  12.50   |    0    |   0    |    0.00    |   6.25   |  0.00   |     0      |
+|        LA VEGA         |    0     |   8.33   |   61.11    |   2.78   |    8.33    |   8.33   |    0    |   0    |    2.78    |   5.56   |  2.78   |     0      |
+| MARÍA TRINIDAD SÁNCHEZ |    0     |   0.00   |   100.00   |   0.00   |    0.00    |   0.00   |    0    |   0    |    0.00    |   0.00   |  0.00   |     0      |
+|      MONTE CRISTI      |    0     |   0.00   |   100.00   |   0.00   |    0.00    |   0.00   |    0    |   0    |    0.00    |   0.00   |  0.00   |     0      |
+|       PEDERNALES       |    0     |   6.67   |   80.00    |   0.00   |   13.33    |   0.00   |    0    |   0    |    0.00    |   0.00   |  0.00   |     0      |
 
 Conjunto 12
 
-|    nombre     | Bromelia | Catopsis | Tillandsia | Guzmania | Pitcairnia | Racinaea | Aechmea | Ananas | Cipuropsis | Werauhia | Zizkaea | Billbergia |
-|:-------------:|:--------:|:--------:|:----------:|:--------:|:----------:|:--------:|:-------:|:------:|:----------:|:--------:|:-------:|:----------:|
-|    DUARTE     |   0.00   |   0.00   |   50.00    |  33.33   |    0.00    |    0     |    0    | 16.67  |     0      |    0     |  0.00   |     0      |
-| MONTE CRISTI  |   0.00   |   0.00   |   100.00   |   0.00   |    0.00    |    0     |    0    |  0.00  |     0      |    0     |  0.00   |     0      |
-|  PEDERNALES   |   0.00   |   6.67   |   80.00    |   0.00   |   13.33    |    0     |    0    |  0.00  |     0      |    0     |  0.00   |     0      |
-| SAN CRISTÓBAL |   6.25   |   0.00   |   68.75    |   6.25   |    6.25    |    0     |    0    |  6.25  |     0      |    0     |  6.25   |     0      |
-|   VALVERDE    |   0.00   |  14.29   |   71.43    |   0.00   |   14.29    |    0     |    0    |  0.00  |     0      |    0     |  0.00   |     0      |
-|  MONTE PLATA  |  12.50   |  12.50   |   75.00    |   0.00   |    0.00    |    0     |    0    |  0.00  |     0      |    0     |  0.00   |     0      |
+|        nombre        | Bromelia | Catopsis | Tillandsia | Guzmania | Pitcairnia | Racinaea | Aechmea | Ananas | Cipuropsis | Werauhia | Zizkaea | Billbergia |
+|:--------------------:|:--------:|:--------:|:----------:|:--------:|:----------:|:--------:|:-------:|:------:|:----------:|:--------:|:-------:|:----------:|
+|       BAORUCO        |   0.00   |   0.00   |   76.92    |   7.69   |    7.69    |   7.69   |    0    |  0.00  |    0.00    |   0.00   |  0.00   |    0.00    |
+|       LA VEGA        |   0.00   |   8.33   |   61.11    |   2.78   |    8.33    |   8.33   |    0    |  0.00  |    2.78    |   5.56   |  2.78   |    0.00    |
+|     PUERTO PLATA     |   7.14   |  14.29   |   57.14    |   7.14   |    7.14    |   0.00   |    0    |  0.00  |    0.00    |   0.00   |  0.00   |    7.14    |
+|    SAN CRISTÓBAL     |   6.25   |   0.00   |   68.75    |   6.25   |    6.25    |   0.00   |    0    |  6.25  |    0.00    |   0.00   |  6.25   |    0.00    |
+| SAN PEDRO DE MACORÍS |  25.00   |   0.00   |   75.00    |   0.00   |    0.00    |   0.00   |    0    |  0.00  |    0.00    |   0.00   |  0.00   |    0.00    |
+|    SANTO DOMINGO     |   8.33   |   8.33   |   50.00    |   8.33   |    8.33    |   0.00   |    0    |  8.33  |    0.00    |   0.00   |  8.33   |    0.00    |
 
 Conjunto 13
 
-|        nombre        | Bromelia | Catopsis | Tillandsia | Guzmania | Pitcairnia | Racinaea | Aechmea | Ananas | Cipuropsis | Werauhia | Zizkaea | Billbergia |
-|:--------------------:|:--------:|:--------:|:----------:|:--------:|:----------:|:--------:|:-------:|:------:|:----------:|:--------:|:-------:|:----------:|
-|      ELÍAS PIÑA      |   0.00   |   6.25   |   68.75    |   0.00   |    6.25    |   12.5   |    0    |   0    |     0      |   6.25   |    0    |     0      |
-|       EL SEIBO       |   0.00   |  20.00   |   40.00    |  20.00   |    0.00    |   0.0    |   20    |   0    |     0      |   0.00   |    0    |     0      |
-|    LA ALTAGRACIA     |   7.69   |   0.00   |   76.92    |  15.38   |    0.00    |   0.0    |    0    |   0    |     0      |   0.00   |    0    |     0      |
-|      PEDERNALES      |   0.00   |   6.67   |   80.00    |   0.00   |   13.33    |   0.0    |    0    |   0    |     0      |   0.00   |    0    |     0      |
-| SAN PEDRO DE MACORÍS |  25.00   |   0.00   |   75.00    |   0.00   |    0.00    |   0.0    |    0    |   0    |     0      |   0.00   |    0    |     0      |
-|      HATO MAYOR      |   0.00   |  10.00   |   65.00    |   0.00   |   10.00    |   0.0    |    0    |   5    |     0      |   5.00   |    5    |     0      |
+|      nombre       | Bromelia | Catopsis | Tillandsia | Guzmania | Pitcairnia | Racinaea | Aechmea | Ananas | Cipuropsis | Werauhia | Zizkaea | Billbergia |
+|:-----------------:|:--------:|:--------:|:----------:|:--------:|:----------:|:--------:|:-------:|:------:|:----------:|:--------:|:-------:|:----------:|
+| DISTRITO NACIONAL |   0.00   |   0.00   |   100.00   |   0.00   |    0.00    |   0.00   |  0.00   |  0.00  |    0.00    |   0.00   |  0.00   |     0      |
+|      BAORUCO      |   0.00   |   0.00   |   76.92    |   7.69   |    7.69    |   7.69   |  0.00   |  0.00  |    0.00    |   0.00   |  0.00   |     0      |
+|     ESPAILLAT     |   0.00   |   8.33   |   66.67    |   8.33   |    0.00    |   8.33   |  8.33   |  0.00  |    0.00    |   0.00   |  0.00   |     0      |
+|     LA ROMANA     |  12.50   |   0.00   |   75.00    |   0.00   |    0.00    |   0.00   |  12.50  |  0.00  |    0.00    |   0.00   |  0.00   |     0      |
+|      LA VEGA      |   0.00   |   8.33   |   61.11    |   2.78   |    8.33    |   8.33   |  0.00   |  0.00  |    2.78    |   5.56   |  2.78   |     0      |
+|   SANTO DOMINGO   |   8.33   |   8.33   |   50.00    |   8.33   |    8.33    |   0.00   |  0.00   |  8.33  |    0.00    |   0.00   |  8.33   |     0      |
 
 Conjunto 14
 
-|        nombre        | Bromelia | Catopsis | Tillandsia | Guzmania | Pitcairnia | Racinaea | Aechmea | Ananas | Cipuropsis | Werauhia | Zizkaea | Billbergia |
-|:--------------------:|:--------:|:--------:|:----------:|:--------:|:----------:|:--------:|:-------:|:------:|:----------:|:--------:|:-------:|:----------:|
-|         AZUA         |   5.88   |   5.88   |   88.24    |   0.00   |    0.00    |   0.00   |  0.00   |  0.00  |    0.00    |   0.00   |  0.00   |    0.00    |
-|       BARAHONA       |   0.00   |  10.34   |   51.72    |  10.34   |   10.34    |   3.45   |  3.45   |  3.45  |    3.45    |   3.45   |  0.00   |    0.00    |
-|       PERAVIA        |   0.00   |  11.11   |   77.78    |  11.11   |    0.00    |   0.00   |  0.00   |  0.00  |    0.00    |   0.00   |  0.00   |    0.00    |
-|     PUERTO PLATA     |   7.14   |  14.29   |   57.14    |   7.14   |    7.14    |   0.00   |  0.00   |  0.00  |    0.00    |   0.00   |  0.00   |    7.14    |
-| SAN PEDRO DE MACORÍS |  25.00   |   0.00   |   75.00    |   0.00   |    0.00    |   0.00   |  0.00   |  0.00  |    0.00    |   0.00   |  0.00   |    0.00    |
-|    SANTO DOMINGO     |   8.33   |   8.33   |   50.00    |   8.33   |    8.33    |   0.00   |  0.00   |  8.33  |    0.00    |   0.00   |  8.33   |    0.00    |
+|    nombre    | Bromelia | Catopsis | Tillandsia | Guzmania | Pitcairnia | Racinaea | Aechmea | Ananas | Cipuropsis | Werauhia | Zizkaea | Billbergia |
+|:------------:|:--------:|:--------:|:----------:|:--------:|:----------:|:--------:|:-------:|:------:|:----------:|:--------:|:-------:|:----------:|
+|   BAORUCO    |   0.00   |   0.00   |   76.92    |   7.69   |    7.69    |   7.69   |    0    |   0    |     0      |   0.00   |    0    |     0      |
+| MONTE CRISTI |   0.00   |   0.00   |   100.00   |   0.00   |    0.00    |   0.00   |    0    |   0    |     0      |   0.00   |    0    |     0      |
+|   SAN JUAN   |   0.00   |  11.11   |   66.67    |   0.00   |   16.67    |   0.00   |    0    |   0    |     0      |   5.56   |    0    |     0      |
+|   SANTIAGO   |   6.67   |  13.33   |   60.00    |  20.00   |    0.00    |   0.00   |    0    |   0    |     0      |   0.00   |    0    |     0      |
+|   VALVERDE   |   0.00   |  14.29   |   71.43    |   0.00   |   14.29    |   0.00   |    0    |   0    |     0      |   0.00   |    0    |     0      |
+|  HATO MAYOR  |   0.00   |  10.00   |   65.00    |   0.00   |   10.00    |   0.00   |    0    |   5    |     0      |   5.00   |    5    |     0      |
 
 Conjunto 15
 
-|        nombre        | Bromelia | Catopsis | Tillandsia | Guzmania | Pitcairnia | Racinaea | Aechmea | Ananas | Cipuropsis | Werauhia | Zizkaea | Billbergia |
-|:--------------------:|:--------:|:--------:|:----------:|:--------:|:----------:|:--------:|:-------:|:------:|:----------:|:--------:|:-------:|:----------:|
-|       DAJABÓN        |   0.00   |   0.00   |   100.00   |   0.00   |    0.00    |   0.00   |    0    |  0.00  |    0.00    |   0.00   |  0.00   |     0      |
-|       LA VEGA        |   0.00   |   8.33   |   61.11    |   2.78   |    8.33    |   8.33   |    0    |  0.00  |    2.78    |   5.56   |  2.78   |     0      |
-|        SAMANÁ        |   0.00   |  10.00   |   40.00    |  10.00   |   20.00    |   0.00   |    0    | 10.00  |    0.00    |   0.00   |  10.00  |     0      |
-|    SAN CRISTÓBAL     |   6.25   |   0.00   |   68.75    |   6.25   |    6.25    |   0.00   |    0    |  6.25  |    0.00    |   0.00   |  6.25   |     0      |
-| SAN PEDRO DE MACORÍS |  25.00   |   0.00   |   75.00    |   0.00   |    0.00    |   0.00   |    0    |  0.00  |    0.00    |   0.00   |  0.00   |     0      |
-|  SANTIAGO RODRÍGUEZ  |   0.00   |   9.09   |   90.91    |   0.00   |    0.00    |   0.00   |    0    |  0.00  |    0.00    |   0.00   |  0.00   |     0      |
+|      nombre      | Bromelia | Catopsis | Tillandsia | Guzmania | Pitcairnia | Racinaea | Aechmea | Ananas | Cipuropsis | Werauhia | Zizkaea | Billbergia |
+|:----------------:|:--------:|:--------:|:----------:|:--------:|:----------:|:--------:|:-------:|:------:|:----------:|:--------:|:-------:|:----------:|
+|       AZUA       |   5.88   |   5.88   |   88.24    |   0.00   |    0.00    |   0.00   |    0    |  0.00  |    0.00    |   0.00   |  0.00   |     0      |
+|  SAN CRISTÓBAL   |   6.25   |   0.00   |   68.75    |   6.25   |    6.25    |   0.00   |    0    |  6.25  |    0.00    |   0.00   |  6.25   |     0      |
+|     VALVERDE     |   0.00   |  14.29   |   71.43    |   0.00   |   14.29    |   0.00   |    0    |  0.00  |    0.00    |   0.00   |  0.00   |     0      |
+|    HATO MAYOR    |   0.00   |  10.00   |   65.00    |   0.00   |   10.00    |   0.00   |    0    |  5.00  |    0.00    |   5.00   |  5.00   |     0      |
+| SAN JOSÉ DE OCOA |   0.00   |   2.94   |   67.65    |   8.82   |    8.82    |   5.88   |    0    |  0.00  |    2.94    |   2.94   |  0.00   |     0      |
+|  SANTO DOMINGO   |   8.33   |   8.33   |   50.00    |   8.33   |    8.33    |   0.00   |    0    |  8.33  |    0.00    |   0.00   |  8.33   |     0      |
 
 Conjunto 16
 
-|         nombre         | Bromelia | Catopsis | Tillandsia | Guzmania | Pitcairnia | Racinaea | Aechmea | Ananas | Cipuropsis | Werauhia | Zizkaea | Billbergia |
-|:----------------------:|:--------:|:--------:|:----------:|:--------:|:----------:|:--------:|:-------:|:------:|:----------:|:--------:|:-------:|:----------:|
-|        BAORUCO         |    0     |   0.00   |   76.92    |   7.69   |    7.69    |   7.69   |    0    |   0    |    0.00    |   0.00   |    0    |     0      |
-| MARÍA TRINIDAD SÁNCHEZ |    0     |   0.00   |   100.00   |   0.00   |    0.00    |   0.00   |    0    |   0    |    0.00    |   0.00   |    0    |     0      |
-|  SAN PEDRO DE MACORÍS  |    25    |   0.00   |   75.00    |   0.00   |    0.00    |   0.00   |    0    |   0    |    0.00    |   0.00   |    0    |     0      |
-|    SANCHEZ RAMÍREZ     |    0     |   0.00   |   85.71    |  14.29   |    0.00    |   0.00   |    0    |   0    |    0.00    |   0.00   |    0    |     0      |
-|   SANTIAGO RODRÍGUEZ   |    0     |   9.09   |   90.91    |   0.00   |    0.00    |   0.00   |    0    |   0    |    0.00    |   0.00   |    0    |     0      |
-|    SAN JOSÉ DE OCOA    |    0     |   2.94   |   67.65    |   8.82   |    8.82    |   5.88   |    0    |   0    |    2.94    |   2.94   |    0    |     0      |
+|        nombre        | Bromelia | Catopsis | Tillandsia | Guzmania | Pitcairnia | Racinaea | Aechmea | Ananas | Cipuropsis | Werauhia | Zizkaea | Billbergia |
+|:--------------------:|:--------:|:--------:|:----------:|:--------:|:----------:|:--------:|:-------:|:------:|:----------:|:--------:|:-------:|:----------:|
+|       BAORUCO        |    0     |   0.00   |   76.92    |   7.69   |    7.69    |   7.69   |    0    |  0.00  |    0.00    |   0.00   |  0.00   |     0      |
+|        DUARTE        |    0     |   0.00   |   50.00    |  33.33   |    0.00    |   0.00   |    0    | 16.67  |    0.00    |   0.00   |  0.00   |     0      |
+|       LA VEGA        |    0     |   8.33   |   61.11    |   2.78   |    8.33    |   8.33   |    0    |  0.00  |    2.78    |   5.56   |  2.78   |     0      |
+| SAN PEDRO DE MACORÍS |    25    |   0.00   |   75.00    |   0.00   |    0.00    |   0.00   |    0    |  0.00  |    0.00    |   0.00   |  0.00   |     0      |
+|   SANCHEZ RAMÍREZ    |    0     |   0.00   |   85.71    |  14.29   |    0.00    |   0.00   |    0    |  0.00  |    0.00    |   0.00   |  0.00   |     0      |
+|  SANTIAGO RODRÍGUEZ  |    0     |   9.09   |   90.91    |   0.00   |    0.00    |   0.00   |    0    |  0.00  |    0.00    |   0.00   |  0.00   |     0      |
 
 Conjunto 17
 
 |         nombre         | Bromelia | Catopsis | Tillandsia | Guzmania | Pitcairnia | Racinaea | Aechmea | Ananas | Cipuropsis | Werauhia | Zizkaea | Billbergia |
 |:----------------------:|:--------:|:--------:|:----------:|:--------:|:----------:|:--------:|:-------:|:------:|:----------:|:--------:|:-------:|:----------:|
-|        BAORUCO         |   0.0    |   0.00   |   76.92    |   7.69   |    7.69    |   7.69   |   0.0   |   0    |     0      |    0     |    0    |     0      |
-|        EL SEIBO        |   0.0    |  20.00   |   40.00    |  20.00   |    0.00    |   0.00   |  20.0   |   0    |     0      |    0     |    0    |     0      |
-|       LA ROMANA        |   12.5   |   0.00   |   75.00    |   0.00   |    0.00    |   0.00   |  12.5   |   0    |     0      |    0     |    0    |     0      |
-| MARÍA TRINIDAD SÁNCHEZ |   0.0    |   0.00   |   100.00   |   0.00   |    0.00    |   0.00   |   0.0   |   0    |     0      |    0     |    0    |     0      |
-|       PEDERNALES       |   0.0    |   6.67   |   80.00    |   0.00   |   13.33    |   0.00   |   0.0   |   0    |     0      |    0     |    0    |     0      |
-|   SANTIAGO RODRÍGUEZ   |   0.0    |   9.09   |   90.91    |   0.00   |    0.00    |   0.00   |   0.0   |   0    |     0      |    0     |    0    |     0      |
+|       LA ROMANA        |  12.50   |   0.00   |   75.00    |   0.00   |    0.00    |    0     |  12.5   |  0.00  |     0      |    0     |  0.00   |    0.00    |
+| MARÍA TRINIDAD SÁNCHEZ |   0.00   |   0.00   |   100.00   |   0.00   |    0.00    |    0     |   0.0   |  0.00  |     0      |    0     |  0.00   |    0.00    |
+|      PUERTO PLATA      |   7.14   |  14.29   |   57.14    |   7.14   |    7.14    |    0     |   0.0   |  0.00  |     0      |    0     |  0.00   |    7.14    |
+|    SANCHEZ RAMÍREZ     |   0.00   |   0.00   |   85.71    |  14.29   |    0.00    |    0     |   0.0   |  0.00  |     0      |    0     |  0.00   |    0.00    |
+|       HATO MAYOR       |   0.00   |  10.00   |   65.00    |   0.00   |   10.00    |    0     |   0.0   |  5.00  |     0      |    5     |  5.00   |    0.00    |
+|     SANTO DOMINGO      |   8.33   |   8.33   |   50.00    |   8.33   |    8.33    |    0     |   0.0   |  8.33  |     0      |    0     |  8.33   |    0.00    |
 
 Conjunto 18
 
-|         nombre         | Bromelia | Catopsis | Tillandsia | Guzmania | Pitcairnia | Racinaea | Aechmea | Ananas | Cipuropsis | Werauhia | Zizkaea | Billbergia |
-|:----------------------:|:--------:|:--------:|:----------:|:--------:|:----------:|:--------:|:-------:|:------:|:----------:|:--------:|:-------:|:----------:|
-|        BAORUCO         |    0     |   0.00   |   76.92    |   7.69   |    7.69    |   7.69   |    0    |   0    |     0      |   0.00   |    0    |     0      |
-|       ELÍAS PIÑA       |    0     |   6.25   |   68.75    |   0.00   |    6.25    |  12.50   |    0    |   0    |     0      |   6.25   |    0    |     0      |
-| MARÍA TRINIDAD SÁNCHEZ |    0     |   0.00   |   100.00   |   0.00   |    0.00    |   0.00   |    0    |   0    |     0      |   0.00   |    0    |     0      |
-|  SAN PEDRO DE MACORÍS  |    25    |   0.00   |   75.00    |   0.00   |    0.00    |   0.00   |    0    |   0    |     0      |   0.00   |    0    |     0      |
-|    SANCHEZ RAMÍREZ     |    0     |   0.00   |   85.71    |  14.29   |    0.00    |   0.00   |    0    |   0    |     0      |   0.00   |    0    |     0      |
-|       HATO MAYOR       |    0     |  10.00   |   65.00    |   0.00   |   10.00    |   0.00   |    0    |   5    |     0      |   5.00   |    5    |     0      |
+|    nombre    | Bromelia | Catopsis | Tillandsia | Guzmania | Pitcairnia | Racinaea | Aechmea | Ananas | Cipuropsis | Werauhia | Zizkaea | Billbergia |
+|:------------:|:--------:|:--------:|:----------:|:--------:|:----------:|:--------:|:-------:|:------:|:----------:|:--------:|:-------:|:----------:|
+|   EL SEIBO   |   0.00   |  20.00   |   40.00    |  20.00   |    0.00    |   0.00   |   20    |   0    |    0.00    |   0.00   |  0.00   |    0.00    |
+|   LA VEGA    |   0.00   |   8.33   |   61.11    |   2.78   |    8.33    |   8.33   |    0    |   0    |    2.78    |   5.56   |  2.78   |    0.00    |
+| MONTE CRISTI |   0.00   |   0.00   |   100.00   |   0.00   |    0.00    |   0.00   |    0    |   0    |    0.00    |   0.00   |  0.00   |    0.00    |
+|   PERAVIA    |   0.00   |  11.11   |   77.78    |  11.11   |    0.00    |   0.00   |    0    |   0    |    0.00    |   0.00   |  0.00   |    0.00    |
+| PUERTO PLATA |   7.14   |  14.29   |   57.14    |   7.14   |    7.14    |   0.00   |    0    |   0    |    0.00    |   0.00   |  0.00   |    7.14    |
+|   SAN JUAN   |   0.00   |  11.11   |   66.67    |   0.00   |   16.67    |   0.00   |    0    |   0    |    0.00    |   5.56   |  0.00   |    0.00    |
 
 Conjunto 19
 
-|    nombre    | Bromelia | Catopsis | Tillandsia | Guzmania | Pitcairnia | Racinaea | Aechmea | Ananas | Cipuropsis | Werauhia | Zizkaea | Billbergia |
-|:------------:|:--------:|:--------:|:----------:|:--------:|:----------:|:--------:|:-------:|:------:|:----------:|:--------:|:-------:|:----------:|
-|   DAJABÓN    |    0     |   0.00   |   100.00   |    0     |    0.00    |    0     |    0    |   0    |     0      |   0.00   |    0    |     0      |
-|   EL SEIBO   |    0     |  20.00   |   40.00    |    20    |    0.00    |    0     |   20    |   0    |     0      |   0.00   |    0    |     0      |
-| MONTE CRISTI |    0     |   0.00   |   100.00   |    0     |    0.00    |    0     |    0    |   0    |     0      |   0.00   |    0    |     0      |
-|    SAMANÁ    |    0     |  10.00   |   40.00    |    10    |   20.00    |    0     |    0    |   10   |     0      |   0.00   |   10    |     0      |
-|   SAN JUAN   |    0     |  11.11   |   66.67    |    0     |   16.67    |    0     |    0    |   0    |     0      |   5.56   |    0    |     0      |
-|   VALVERDE   |    0     |  14.29   |   71.43    |    0     |   14.29    |    0     |    0    |   0    |     0      |   0.00   |    0    |     0      |
+|         nombre         | Bromelia | Catopsis | Tillandsia | Guzmania | Pitcairnia | Racinaea | Aechmea | Ananas | Cipuropsis | Werauhia | Zizkaea | Billbergia |
+|:----------------------:|:--------:|:--------:|:----------:|:--------:|:----------:|:--------:|:-------:|:------:|:----------:|:--------:|:-------:|:----------:|
+|        BARAHONA        |    0     |  10.34   |   51.72    |  10.34   |   10.34    |   3.45   |  3.45   |  3.45  |    3.45    |   3.45   |    0    |     0      |
+| MARÍA TRINIDAD SÁNCHEZ |    0     |   0.00   |   100.00   |   0.00   |    0.00    |   0.00   |  0.00   |  0.00  |    0.00    |   0.00   |    0    |     0      |
+|      MONTE CRISTI      |    0     |   0.00   |   100.00   |   0.00   |    0.00    |   0.00   |  0.00   |  0.00  |    0.00    |   0.00   |    0    |     0      |
+|         SAMANÁ         |    0     |  10.00   |   40.00    |  10.00   |   20.00    |   0.00   |  0.00   | 10.00  |    0.00    |   0.00   |   10    |     0      |
+|   SANTIAGO RODRÍGUEZ   |    0     |   9.09   |   90.91    |   0.00   |    0.00    |   0.00   |  0.00   |  0.00  |    0.00    |   0.00   |    0    |     0      |
+|    SAN JOSÉ DE OCOA    |    0     |   2.94   |   67.65    |   8.82   |    8.82    |   5.88   |  0.00   |  0.00  |    2.94    |   2.94   |    0    |     0      |
 
 Conjunto 20
 
+|   nombre    | Bromelia | Catopsis | Tillandsia | Guzmania | Pitcairnia | Racinaea | Aechmea | Ananas | Cipuropsis | Werauhia | Zizkaea | Billbergia |
+|:-----------:|:--------:|:--------:|:----------:|:--------:|:----------:|:--------:|:-------:|:------:|:----------:|:--------:|:-------:|:----------:|
+|    AZUA     |   5.88   |   5.88   |   88.24    |   0.00   |    0.00    |   0.00   |  0.00   |   0    |    0.00    |   0.00   |  0.00   |     0      |
+| ELÍAS PIÑA  |   0.00   |   6.25   |   68.75    |   0.00   |    6.25    |  12.50   |  0.00   |   0    |    0.00    |   6.25   |  0.00   |     0      |
+|  ESPAILLAT  |   0.00   |   8.33   |   66.67    |   8.33   |    0.00    |   8.33   |  8.33   |   0    |    0.00    |   0.00   |  0.00   |     0      |
+|   LA VEGA   |   0.00   |   8.33   |   61.11    |   2.78   |    8.33    |   8.33   |  0.00   |   0    |    2.78    |   5.56   |  2.78   |     0      |
+|   SAMANÁ    |   0.00   |  10.00   |   40.00    |  10.00   |   20.00    |   0.00   |  0.00   |   10   |    0.00    |   0.00   |  10.00  |     0      |
+| MONTE PLATA |  12.50   |  12.50   |   75.00    |   0.00   |    0.00    |   0.00   |  0.00   |   0    |    0.00    |   0.00   |  0.00   |     0      |
+
+Conjunto 21
+
+|         nombre         | Bromelia | Catopsis | Tillandsia | Guzmania | Pitcairnia | Racinaea | Aechmea | Ananas | Cipuropsis | Werauhia | Zizkaea | Billbergia |
+|:----------------------:|:--------:|:--------:|:----------:|:--------:|:----------:|:--------:|:-------:|:------:|:----------:|:--------:|:-------:|:----------:|
+|          AZUA          |   5.88   |   5.88   |   88.24    |   0.00   |    0.00    |   0.00   |    0    |   0    |    0.00    |   0.00   |    0    |     0      |
+|        BAORUCO         |   0.00   |   0.00   |   76.92    |   7.69   |    7.69    |   7.69   |    0    |   0    |    0.00    |   0.00   |    0    |     0      |
+| MARÍA TRINIDAD SÁNCHEZ |   0.00   |   0.00   |   100.00   |   0.00   |    0.00    |   0.00   |    0    |   0    |    0.00    |   0.00   |    0    |     0      |
+|    SANCHEZ RAMÍREZ     |   0.00   |   0.00   |   85.71    |  14.29   |    0.00    |   0.00   |    0    |   0    |    0.00    |   0.00   |    0    |     0      |
+|      MONTE PLATA       |  12.50   |  12.50   |   75.00    |   0.00   |    0.00    |   0.00   |    0    |   0    |    0.00    |   0.00   |    0    |     0      |
+|    SAN JOSÉ DE OCOA    |   0.00   |   2.94   |   67.65    |   8.82   |    8.82    |   5.88   |    0    |   0    |    2.94    |   2.94   |    0    |     0      |
+
+Conjunto 22
+
+|      nombre       | Bromelia | Catopsis | Tillandsia | Guzmania | Pitcairnia | Racinaea | Aechmea | Ananas | Cipuropsis | Werauhia | Zizkaea | Billbergia |
+|:-----------------:|:--------:|:--------:|:----------:|:--------:|:----------:|:--------:|:-------:|:------:|:----------:|:--------:|:-------:|:----------:|
+| DISTRITO NACIONAL |    0     |   0.00   |   100.00   |   0.00   |    0.00    |   0.00   |    0    |  0.00  |    0.00    |   0.00   |  0.00   |     0      |
+|      BAORUCO      |    0     |   0.00   |   76.92    |   7.69   |    7.69    |   7.69   |    0    |  0.00  |    0.00    |   0.00   |  0.00   |     0      |
+|      DUARTE       |    0     |   0.00   |   50.00    |  33.33   |    0.00    |   0.00   |    0    | 16.67  |    0.00    |   0.00   |  0.00   |     0      |
+|      LA VEGA      |    0     |   8.33   |   61.11    |   2.78   |    8.33    |   8.33   |    0    |  0.00  |    2.78    |   5.56   |  2.78   |     0      |
+|     SAN JUAN      |    0     |  11.11   |   66.67    |   0.00   |   16.67    |   0.00   |    0    |  0.00  |    0.00    |   5.56   |  0.00   |     0      |
+|    HATO MAYOR     |    0     |  10.00   |   65.00    |   0.00   |   10.00    |   0.00   |    0    |  5.00  |    0.00    |   5.00   |  5.00   |     0      |
+
+Conjunto 23
+
+|     nombre      | Bromelia | Catopsis | Tillandsia | Guzmania | Pitcairnia | Racinaea | Aechmea | Ananas | Cipuropsis | Werauhia | Zizkaea | Billbergia |
+|:---------------:|:--------:|:--------:|:----------:|:--------:|:----------:|:--------:|:-------:|:------:|:----------:|:--------:|:-------:|:----------:|
+|     BAORUCO     |   0.00   |   0.00   |   76.92    |   7.69   |    7.69    |   7.69   |    0    |   0    |     0      |   0.00   |  0.00   |     0      |
+|     DAJABÓN     |   0.00   |   0.00   |   100.00   |   0.00   |    0.00    |   0.00   |    0    |   0    |     0      |   0.00   |  0.00   |     0      |
+|    EL SEIBO     |   0.00   |  20.00   |   40.00    |  20.00   |    0.00    |   0.00   |   20    |   0    |     0      |   0.00   |  0.00   |     0      |
+|   PEDERNALES    |   0.00   |   6.67   |   80.00    |   0.00   |   13.33    |   0.00   |    0    |   0    |     0      |   0.00   |  0.00   |     0      |
+| SANCHEZ RAMÍREZ |   0.00   |   0.00   |   85.71    |  14.29   |    0.00    |   0.00   |    0    |   0    |     0      |   0.00   |  0.00   |     0      |
+| MONSEÑOR NOUEL  |   4.35   |  13.04   |   56.52    |   4.35   |   13.04    |   0.00   |    0    |   0    |     0      |   4.35   |  4.35   |     0      |
+
+Conjunto 24
+
 |    nombre     | Bromelia | Catopsis | Tillandsia | Guzmania | Pitcairnia | Racinaea | Aechmea | Ananas | Cipuropsis | Werauhia | Zizkaea | Billbergia |
 |:-------------:|:--------:|:--------:|:----------:|:--------:|:----------:|:--------:|:-------:|:------:|:----------:|:--------:|:-------:|:----------:|
-|     AZUA      |   5.88   |   5.88   |   88.24    |   0.00   |    0.00    |    0     |   0.0   |  0.00  |     0      |   0.00   |  0.00   |    0.00    |
-| INDEPENDENCIA |   0.00   |  10.53   |   68.42    |   0.00   |   10.53    |    0     |   0.0   |  0.00  |     0      |   5.26   |  5.26   |    0.00    |
-|   LA ROMANA   |  12.50   |   0.00   |   75.00    |   0.00   |    0.00    |    0     |  12.5   |  0.00  |     0      |   0.00   |  0.00   |    0.00    |
-| PUERTO PLATA  |   7.14   |  14.29   |   57.14    |   7.14   |    7.14    |    0     |   0.0   |  0.00  |     0      |   0.00   |  0.00   |    7.14    |
-|  HATO MAYOR   |   0.00   |  10.00   |   65.00    |   0.00   |   10.00    |    0     |   0.0   |  5.00  |     0      |   5.00   |  5.00   |    0.00    |
-| SANTO DOMINGO |   8.33   |   8.33   |   50.00    |   8.33   |    8.33    |    0     |   0.0   |  8.33  |     0      |   0.00   |  8.33   |    0.00    |
+|  ELÍAS PIÑA   |   0.00   |   6.25   |   68.75    |   0.00   |    6.25    |   12.5   |    0    |  0.00  |     0      |   6.25   |  0.00   |    0.00    |
+| LA ALTAGRACIA |   7.69   |   0.00   |   76.92    |  15.38   |    0.00    |   0.0    |    0    |  0.00  |     0      |   0.00   |  0.00   |    0.00    |
+| MONTE CRISTI  |   0.00   |   0.00   |   100.00   |   0.00   |    0.00    |   0.0    |    0    |  0.00  |     0      |   0.00   |  0.00   |    0.00    |
+|    PERAVIA    |   0.00   |  11.11   |   77.78    |  11.11   |    0.00    |   0.0    |    0    |  0.00  |     0      |   0.00   |  0.00   |    0.00    |
+| PUERTO PLATA  |   7.14   |  14.29   |   57.14    |   7.14   |    7.14    |   0.0    |    0    |  0.00  |     0      |   0.00   |  0.00   |    7.14    |
+| SANTO DOMINGO |   8.33   |   8.33   |   50.00    |   8.33   |    8.33    |   0.0    |    0    |  8.33  |     0      |   0.00   |  8.33   |    0.00    |
 
-4.  **Generación de la matriz de distancias de cada uno de los 20
+Conjunto 25
+
+|        nombre        | Bromelia | Catopsis | Tillandsia | Guzmania | Pitcairnia | Racinaea | Aechmea | Ananas | Cipuropsis | Werauhia | Zizkaea | Billbergia |
+|:--------------------:|:--------:|:--------:|:----------:|:--------:|:----------:|:--------:|:-------:|:------:|:----------:|:--------:|:-------:|:----------:|
+|       BAORUCO        |   0.0    |   0.00   |   76.92    |   7.69   |    7.69    |   7.69   |  0.00   |  0.00  |    0.00    |   0.00   |  0.00   |     0      |
+|       BARAHONA       |   0.0    |  10.34   |   51.72    |  10.34   |   10.34    |   3.45   |  3.45   |  3.45  |    3.45    |   3.45   |  0.00   |     0      |
+|       LA VEGA        |   0.0    |   8.33   |   61.11    |   2.78   |    8.33    |   8.33   |  0.00   |  0.00  |    2.78    |   5.56   |  2.78   |     0      |
+|      PEDERNALES      |   0.0    |   6.67   |   80.00    |   0.00   |   13.33    |   0.00   |  0.00   |  0.00  |    0.00    |   0.00   |  0.00   |     0      |
+| SAN PEDRO DE MACORÍS |   25.0   |   0.00   |   75.00    |   0.00   |    0.00    |   0.00   |  0.00   |  0.00  |    0.00    |   0.00   |  0.00   |     0      |
+|     MONTE PLATA      |   12.5   |  12.50   |   75.00    |   0.00   |    0.00    |   0.00   |  0.00   |  0.00  |    0.00    |   0.00   |  0.00   |     0      |
+
+Conjunto 26
+
+|    nombre     | Bromelia | Catopsis | Tillandsia | Guzmania | Pitcairnia | Racinaea | Aechmea | Ananas | Cipuropsis | Werauhia | Zizkaea | Billbergia |
+|:-------------:|:--------:|:--------:|:----------:|:--------:|:----------:|:--------:|:-------:|:------:|:----------:|:--------:|:-------:|:----------:|
+|   BARAHONA    |   0.00   |  10.34   |   51.72    |  10.34   |   10.34    |   3.45   |  3.45   |  3.45  |    3.45    |   3.45   |  0.00   |     0      |
+|    DAJABÓN    |   0.00   |   0.00   |   100.00   |   0.00   |    0.00    |   0.00   |  0.00   |  0.00  |    0.00    |   0.00   |  0.00   |     0      |
+| LA ALTAGRACIA |   7.69   |   0.00   |   76.92    |  15.38   |    0.00    |   0.00   |  0.00   |  0.00  |    0.00    |   0.00   |  0.00   |     0      |
+|    LA VEGA    |   0.00   |   8.33   |   61.11    |   2.78   |    8.33    |   8.33   |  0.00   |  0.00  |    2.78    |   5.56   |  2.78   |     0      |
+|  PEDERNALES   |   0.00   |   6.67   |   80.00    |   0.00   |   13.33    |   0.00   |  0.00   |  0.00  |    0.00    |   0.00   |  0.00   |     0      |
+|   VALVERDE    |   0.00   |  14.29   |   71.43    |   0.00   |   14.29    |   0.00   |  0.00   |  0.00  |    0.00    |   0.00   |  0.00   |     0      |
+
+Conjunto 27
+
+|         nombre         | Bromelia | Catopsis | Tillandsia | Guzmania | Pitcairnia | Racinaea | Aechmea | Ananas | Cipuropsis | Werauhia | Zizkaea | Billbergia |
+|:----------------------:|:--------:|:--------:|:----------:|:--------:|:----------:|:--------:|:-------:|:------:|:----------:|:--------:|:-------:|:----------:|
+|          AZUA          |   5.88   |   5.88   |   88.24    |   0.00   |     0      |    0     |   0.0   |   0    |     0      |    0     |    0    |     0      |
+|       LA ROMANA        |  12.50   |   0.00   |   75.00    |   0.00   |     0      |    0     |  12.5   |   0    |     0      |    0     |    0    |     0      |
+| MARÍA TRINIDAD SÁNCHEZ |   0.00   |   0.00   |   100.00   |   0.00   |     0      |    0     |   0.0   |   0    |     0      |    0     |    0    |     0      |
+|        PERAVIA         |   0.00   |  11.11   |   77.78    |  11.11   |     0      |    0     |   0.0   |   0    |     0      |    0     |    0    |     0      |
+|         SAMANÁ         |   0.00   |  10.00   |   40.00    |  10.00   |     20     |    0     |   0.0   |   10   |     0      |    0     |   10    |     0      |
+|  SAN PEDRO DE MACORÍS  |  25.00   |   0.00   |   75.00    |   0.00   |     0      |    0     |   0.0   |   0    |     0      |    0     |    0    |     0      |
+
+Conjunto 28
+
+|         nombre         | Bromelia | Catopsis | Tillandsia | Guzmania | Pitcairnia | Racinaea | Aechmea | Ananas | Cipuropsis | Werauhia | Zizkaea | Billbergia |
+|:----------------------:|:--------:|:--------:|:----------:|:--------:|:----------:|:--------:|:-------:|:------:|:----------:|:--------:|:-------:|:----------:|
+|        BAORUCO         |   0.00   |   0.00   |   76.92    |   7.69   |    7.69    |   7.69   |  0.00   |  0.00  |    0.00    |   0.00   |  0.00   |     0      |
+|        BARAHONA        |   0.00   |  10.34   |   51.72    |  10.34   |   10.34    |   3.45   |  3.45   |  3.45  |    3.45    |   3.45   |  0.00   |     0      |
+| MARÍA TRINIDAD SÁNCHEZ |   0.00   |   0.00   |   100.00   |   0.00   |    0.00    |   0.00   |  0.00   |  0.00  |    0.00    |   0.00   |  0.00   |     0      |
+|         SAMANÁ         |   0.00   |  10.00   |   40.00    |  10.00   |   20.00    |   0.00   |  0.00   | 10.00  |    0.00    |   0.00   |  10.00  |     0      |
+|        SAN JUAN        |   0.00   |  11.11   |   66.67    |   0.00   |   16.67    |   0.00   |  0.00   |  0.00  |    0.00    |   5.56   |  0.00   |     0      |
+|     SANTO DOMINGO      |   8.33   |   8.33   |   50.00    |   8.33   |    8.33    |   0.00   |  0.00   |  8.33  |    0.00    |   0.00   |  8.33   |     0      |
+
+Conjunto 29
+
+|      nombre      | Bromelia | Catopsis | Tillandsia | Guzmania | Pitcairnia | Racinaea | Aechmea | Ananas | Cipuropsis | Werauhia | Zizkaea | Billbergia |
+|:----------------:|:--------:|:--------:|:----------:|:--------:|:----------:|:--------:|:-------:|:------:|:----------:|:--------:|:-------:|:----------:|
+|  LA ALTAGRACIA   |   7.69   |   0.00   |   76.92    |  15.38   |    0.00    |   0.00   |    0    |   0    |    0.00    |   0.00   |  0.00   |     0      |
+|     LA VEGA      |   0.00   |   8.33   |   61.11    |   2.78   |    8.33    |   8.33   |    0    |   0    |    2.78    |   5.56   |  2.78   |     0      |
+|     SANTIAGO     |   6.67   |  13.33   |   60.00    |  20.00   |    0.00    |   0.00   |    0    |   0    |    0.00    |   0.00   |  0.00   |     0      |
+|  MONSEÑOR NOUEL  |   4.35   |  13.04   |   56.52    |   4.35   |   13.04    |   0.00   |    0    |   0    |    0.00    |   4.35   |  4.35   |     0      |
+|   MONTE PLATA    |  12.50   |  12.50   |   75.00    |   0.00   |    0.00    |   0.00   |    0    |   0    |    0.00    |   0.00   |  0.00   |     0      |
+| SAN JOSÉ DE OCOA |   0.00   |   2.94   |   67.65    |   8.82   |    8.82    |   5.88   |    0    |   0    |    2.94    |   2.94   |  0.00   |     0      |
+
+Conjunto 30
+
+|      nombre       | Bromelia | Catopsis | Tillandsia | Guzmania | Pitcairnia | Racinaea | Aechmea | Ananas | Cipuropsis | Werauhia | Zizkaea | Billbergia |
+|:-----------------:|:--------:|:--------:|:----------:|:--------:|:----------:|:--------:|:-------:|:------:|:----------:|:--------:|:-------:|:----------:|
+| DISTRITO NACIONAL |    0     |   0.00   |   100.00   |   0.00   |    0.00    |   0.00   |    0    |  0.00  |    0.00    |   0.00   |  0.00   |     0      |
+|      DUARTE       |    0     |   0.00   |   50.00    |  33.33   |    0.00    |   0.00   |    0    | 16.67  |    0.00    |   0.00   |  0.00   |     0      |
+|     EL SEIBO      |    0     |  20.00   |   40.00    |  20.00   |    0.00    |   0.00   |   20    |  0.00  |    0.00    |   0.00   |  0.00   |     0      |
+|      LA VEGA      |    0     |   8.33   |   61.11    |   2.78   |    8.33    |   8.33   |    0    |  0.00  |    2.78    |   5.56   |  2.78   |     0      |
+|     SAN JUAN      |    0     |  11.11   |   66.67    |   0.00   |   16.67    |   0.00   |    0    |  0.00  |    0.00    |   5.56   |  0.00   |     0      |
+|  SANCHEZ RAMÍREZ  |    0     |   0.00   |   85.71    |  14.29   |    0.00    |   0.00   |    0    |  0.00  |    0.00    |   0.00   |  0.00   |     0      |
+
+4.  **Generación de la matriz de distancias de cada uno de los 30
     conjuntos**. Esta es la matriz de distancias con la que podrás
     realizar el agrupamiento jerárquico UPGMA (parte 2 del mandato, que
     verás en la siguiente sección).
@@ -468,212 +595,322 @@ print(sapply(
 
 \$`Conjunto 2`
 
-|                        | DAJABÓN | LA ALTAGRACIA | MARÍA TRINIDAD SÁNCHEZ | PUERTO PLATA | SAN CRISTÓBAL | SAN PEDRO DE MACORÍS |
-|:-----------------------|:-------:|:-------------:|:----------------------:|:------------:|:-------------:|:--------------------:|
-| DAJABÓN                |  0.00   |     28.78     |          0.00          |    47.38     |     34.23     |        35.36         |
-| LA ALTAGRACIA          |  28.78  |     0.00      |         28.78          |    27.67     |     16.42     |        23.24         |
-| MARÍA TRINIDAD SÁNCHEZ |  0.00   |     28.78     |          0.00          |    47.38     |     34.23     |        35.36         |
-| PUERTO PLATA           |  47.38  |     27.67     |         47.38          |     0.00     |     21.69     |        31.54         |
-| SAN CRISTÓBAL          |  34.23  |     16.42     |         34.23          |    21.69     |     0.00      |        23.39         |
-| SAN PEDRO DE MACORÍS   |  35.36  |     23.24     |         35.36          |    31.54     |     23.39     |         0.00         |
+|                      | LA VEGA | PUERTO PLATA | SAN PEDRO DE MACORÍS | SANTIAGO | SANTIAGO RODRÍGUEZ | HATO MAYOR |
+|:---------------------|:-------:|:------------:|:--------------------:|:--------:|:------------------:|:----------:|
+| LA VEGA              |  0.00   |    17.01     |        32.87         |  23.50   |       32.88        |   11.65    |
+| PUERTO PLATA         |  17.01  |     0.00     |        31.54         |  16.63   |       37.03        |   17.79    |
+| SAN PEDRO DE MACORÍS |  32.87  |    31.54     |         0.00         |  33.75   |       31.00        |   31.62    |
+| SANTIAGO             |  23.50  |    16.63     |        33.75         |   0.00   |       37.65        |   25.60    |
+| SANTIAGO RODRÍGUEZ   |  32.88  |    37.03     |        31.00         |  37.65   |        0.00        |   29.11    |
+| HATO MAYOR           |  11.65  |    17.79     |        31.62         |  25.60   |       29.11        |    0.00    |
 
 \$`Conjunto 3`
 
-|                      | DAJABÓN | SAMANÁ | SAN PEDRO DE MACORÍS | SANTIAGO RODRÍGUEZ | VALVERDE | MONSEÑOR NOUEL |
-|:---------------------|:-------:|:------:|:--------------------:|:------------------:|:--------:|:--------------:|
-| DAJABÓN              |  0.00   | 66.33  |        35.36         |       12.86        |  34.99   |     48.02      |
-| SAMANÁ               |  66.33  |  0.00  |        51.48         |       57.38        |  36.59   |     23.07      |
-| SAN PEDRO DE MACORÍS |  35.36  | 51.48  |         0.00         |       31.00        |  32.34   |     34.13      |
-| SANTIAGO RODRÍGUEZ   |  12.86  | 57.38  |        31.00         |        0.00        |  24.71   |     38.00      |
-| VALVERDE             |  34.99  | 36.59  |        32.34         |       24.71        |   0.00   |     17.35      |
-| MONSEÑOR NOUEL       |  48.02  | 23.07  |        34.13         |       38.00        |  17.35   |      0.00      |
+|               | BARAHONA | LA ALTAGRACIA | MONTE CRISTI | PEDERNALES | PERAVIA | VALVERDE |
+|:--------------|:--------:|:-------------:|:------------:|:----------:|:-------:|:--------:|
+| BARAHONA      |   0.00   |     31.51     |    52.07     |   31.44    |  29.09  |  24.20   |
+| LA ALTAGRACIA |  31.51   |     0.00      |    28.78     |   22.97    |  14.20  |  27.10   |
+| MONTE CRISTI  |  52.07   |     28.78     |     0.00     |   24.94    |  27.22  |  34.99   |
+| PEDERNALES    |  31.44   |     22.97     |    24.94     |    0.00    |  18.05  |  11.51   |
+| PERAVIA       |  29.09   |     14.20     |    27.22     |   18.05    |  0.00   |  19.44   |
+| VALVERDE      |  24.20   |     27.10     |    34.99     |   11.51    |  19.44  |   0.00   |
 
 \$`Conjunto 4`
 
-|                    | BAORUCO | ESPAILLAT | SANTIAGO RODRÍGUEZ | MONSEÑOR NOUEL | MONTE PLATA | SAN JOSÉ DE OCOA |
-|:-------------------|:-------:|:---------:|:------------------:|:--------------:|:-----------:|:----------------:|
-| BAORUCO            |  0.00   |   17.44   |       21.35        |     27.24      |    22.22    |      10.86       |
-| ESPAILLAT          |  17.44  |   0.00    |       28.22        |     22.51      |    21.25    |      14.17       |
-| SANTIAGO RODRÍGUEZ |  21.35  |   28.22   |        0.00        |     38.00      |    20.52    |      28.05       |
-| MONSEÑOR NOUEL     |  27.24  |   22.51   |       38.00        |      0.00      |    25.20    |      18.62       |
-| MONTE PLATA        |  22.22  |   21.25   |       20.52        |     25.20      |    0.00     |      22.57       |
-| SAN JOSÉ DE OCOA   |  10.86  |   14.17   |       28.05        |     18.62      |    22.57    |       0.00       |
+|                      | ESPAILLAT | MONTE CRISTI | PUERTO PLATA | SAN PEDRO DE MACORÍS | SANTIAGO RODRÍGUEZ | MONTE PLATA |
+|:---------------------|:---------:|:------------:|:------------:|:--------------------:|:------------------:|:-----------:|
+| ESPAILLAT            |   0.00    |    37.27     |    20.48     |        31.18         |       28.22        |    21.25    |
+| MONTE CRISTI         |   37.27   |     0.00     |    47.38     |        35.36         |       12.86        |    30.62    |
+| PUERTO PLATA         |   20.48   |    47.38     |     0.00     |        31.54         |       37.03        |    22.45    |
+| SAN PEDRO DE MACORÍS |   31.18   |    35.36     |    31.54     |         0.00         |       31.00        |    17.68    |
+| SANTIAGO RODRÍGUEZ   |   28.22   |    12.86     |    37.03     |        31.00         |        0.00        |    20.52    |
+| MONTE PLATA          |   21.25   |    30.62     |    22.45     |        17.68         |       20.52        |    0.00     |
 
 \$`Conjunto 5`
 
-|               | ELÍAS PIÑA | EL SEIBO | ESPAILLAT | INDEPENDENCIA | SAMANÁ | VALVERDE |
-|:--------------|:----------:|:--------:|:---------:|:-------------:|:------:|:--------:|
-| ELÍAS PIÑA    |    0.00    |  45.28   |   15.59   |     14.89     | 39.05  |  18.21   |
-| EL SEIBO      |   45.28    |   0.00   |   34.48   |     43.17     | 34.64  |  44.99   |
-| ESPAILLAT     |   15.59    |  34.48   |   0.00    |     19.56     | 38.15  |  21.69   |
-| INDEPENDENCIA |   14.89    |  43.17   |   19.56   |     0.00      | 33.88  |   9.63   |
-| SAMANÁ        |   39.05    |  34.64   |   38.15   |     33.88     |  0.00  |  36.59   |
-| VALVERDE      |   18.21    |  44.99   |   21.69   |     9.63      | 36.59  |   0.00   |
+|                        | AZUA  | BARAHONA | LA ALTAGRACIA | MARÍA TRINIDAD SÁNCHEZ | PUERTO PLATA | SANCHEZ RAMÍREZ |
+|:-----------------------|:-----:|:--------:|:-------------:|:----------------------:|:------------:|:---------------:|
+| AZUA                   | 0.00  |  40.76   |     20.06     |         14.41          |    34.53     |      16.72      |
+| BARAHONA               | 40.76 |   0.00   |     31.51     |         52.07          |    15.06     |      38.00      |
+| LA ALTAGRACIA          | 20.06 |  31.51   |     0.00      |         28.78          |    27.67     |      11.73      |
+| MARÍA TRINIDAD SÁNCHEZ | 14.41 |  52.07   |     28.78     |          0.00          |    47.38     |      20.20      |
+| PUERTO PLATA           | 34.53 |  15.06   |     27.67     |         47.38          |     0.00     |      34.99      |
+| SANCHEZ RAMÍREZ        | 16.72 |  38.00   |     11.73     |         20.20          |    34.99     |      0.00       |
 
 \$`Conjunto 6`
 
-|                        | BARAHONA | ELÍAS PIÑA | LA ALTAGRACIA | MARÍA TRINIDAD SÁNCHEZ | PERAVIA | SAN JUAN |
-|:-----------------------|:--------:|:----------:|:-------------:|:----------------------:|:-------:|:--------:|
-| BARAHONA               |   0.00   |   23.58    |     31.51     |         52.07          |  29.09  |  20.56   |
-| ELÍAS PIÑA             |  23.58   |    0.00    |     25.22     |         35.36          |  21.52  |  17.12   |
-| LA ALTAGRACIA          |  31.51   |   25.22    |     0.00      |         28.78          |  14.20  |  28.86   |
-| MARÍA TRINIDAD SÁNCHEZ |  52.07   |   35.36    |     28.78     |          0.00          |  27.22  |  39.28   |
-| PERAVIA                |  29.09   |   21.52    |     14.20     |         27.22          |  0.00   |  23.57   |
-| SAN JUAN               |  20.56   |   17.12    |     28.86     |         39.28          |  23.57  |   0.00   |
+|                  | AZUA  | BARAHONA | PEDERNALES | SAMANÁ | SAN CRISTÓBAL | SAN JOSÉ DE OCOA |
+|:-----------------|:-----:|:--------:|:----------:|:------:|:-------------:|:----------------:|
+| AZUA             | 0.00  |  40.76   |   16.76    | 55.48  |     23.89     |      25.98       |
+| BARAHONA         | 40.76 |   0.00   |   31.44    | 20.53  |     23.75     |      18.53       |
+| PEDERNALES       | 16.76 |  31.44   |    0.00    | 44.22  |     19.43     |      17.79       |
+| SAMANÁ           | 55.48 |  20.53   |   44.22    |  0.00  |     34.60     |      34.53       |
+| SAN CRISTÓBAL    | 23.89 |  23.75   |   19.43    | 34.60  |     0.00      |      13.86       |
+| SAN JOSÉ DE OCOA | 25.98 |  18.53   |   17.79    | 34.53  |     13.86     |       0.00       |
 
 \$`Conjunto 7`
 
-|               | ELÍAS PIÑA | ESPAILLAT | INDEPENDENCIA | LA ROMANA | LA VEGA | MONTE CRISTI |
-|:--------------|:----------:|:---------:|:-------------:|:---------:|:-------:|:------------:|
-| ELÍAS PIÑA    |    0.00    |   15.59   |     14.89     |   25.00   |  10.39  |    35.36     |
-| ESPAILLAT     |   15.59    |   0.00    |     19.56     |   21.25   |  15.71  |    37.27     |
-| INDEPENDENCIA |   14.89    |   19.56   |     0.00      |   25.16   |  12.42  |    35.70     |
-| LA ROMANA     |   25.00    |   21.25   |     25.16     |   0.00    |  27.71  |    30.62     |
-| LA VEGA       |   10.39    |   15.71   |     12.42     |   27.71   |  0.00   |    42.13     |
-| MONTE CRISTI  |   35.36    |   37.27   |     35.70     |   30.62   |  42.13  |     0.00     |
+|                  | LA VEGA | PEDERNALES | MONTE PLATA | HATO MAYOR | SAN JOSÉ DE OCOA | SANTO DOMINGO |
+|:-----------------|:-------:|:----------:|:-----------:|:----------:|:----------------:|:-------------:|
+| LA VEGA          |  0.00   |   22.54    |    23.65    |   11.65    |      11.37       |     20.79     |
+| PEDERNALES       |  22.54  |    0.00    |    19.83    |   17.95    |      17.79       |     34.72     |
+| MONTE PLATA      |  23.65  |   19.83    |    0.00     |   20.92    |      22.57       |     30.62     |
+| HATO MAYOR       |  11.65  |   17.95    |    20.92    |    0.00    |      15.28       |     20.41     |
+| SAN JOSÉ DE OCOA |  11.37  |   17.79    |    22.57    |   15.28    |       0.00       |     24.52     |
+| SANTO DOMINGO    |  20.79  |   34.72    |    30.62    |   20.41    |      24.52       |     0.00      |
 
 \$`Conjunto 8`
 
-|                 | ELÍAS PIÑA | ESPAILLAT | INDEPENDENCIA | SAN JUAN | SANCHEZ RAMÍREZ | MONSEÑOR NOUEL |
-|:----------------|:----------:|:---------:|:-------------:|:--------:|:---------------:|:--------------:|
-| ELÍAS PIÑA      |    0.00    |   15.59   |     14.89     |  17.12   |      27.66      |     21.41      |
-| ESPAILLAT       |   15.59    |   0.00    |     19.56     |  22.91   |      24.63      |     22.51      |
-| INDEPENDENCIA   |   14.89    |   19.56   |     0.00      |   8.30   |      27.93      |     13.92      |
-| SAN JUAN        |   17.12    |   22.91   |     8.30      |   0.00   |      31.61      |     13.34      |
-| SANCHEZ RAMÍREZ |   27.66    |   24.63   |     27.93     |  31.61   |      0.00       |     36.71      |
-| MONSEÑOR NOUEL  |   21.41    |   22.51   |     13.92     |  13.34   |      36.71      |      0.00      |
+|                        | DISTRITO NACIONAL | ESPAILLAT | LA VEGA | MARÍA TRINIDAD SÁNCHEZ | SANCHEZ RAMÍREZ | MONSEÑOR NOUEL |
+|:-----------------------|:-----------------:|:---------:|:-------:|:----------------------:|:---------------:|:--------------:|
+| DISTRITO NACIONAL      |       0.00        |   37.27   |  42.13  |          0.00          |      20.20      |     48.02      |
+| ESPAILLAT              |       37.27       |   0.00    |  15.71  |         37.27          |      24.63      |     22.51      |
+| LA VEGA                |       42.13       |   15.71   |  0.00   |         42.13          |      31.50      |     12.96      |
+| MARÍA TRINIDAD SÁNCHEZ |       0.00        |   37.27   |  42.13  |          0.00          |      20.20      |     48.02      |
+| SANCHEZ RAMÍREZ        |       20.20       |   24.63   |  31.50  |         20.20          |      0.00       |     36.71      |
+| MONSEÑOR NOUEL         |       48.02       |   22.51   |  12.96  |         48.02          |      36.71      |      0.00      |
 
 \$`Conjunto 9`
 
-|                    | AZUA  | DAJABÓN | DUARTE | SAN JUAN | SANTIAGO RODRÍGUEZ | MONSEÑOR NOUEL |
-|:-------------------|:-----:|:-------:|:------:|:--------:|:------------------:|:--------------:|
-| AZUA               | 0.00  |  14.41  | 54.04  |  28.91   |        7.21        |     35.86      |
-| DAJABÓN            | 14.41 |  0.00   | 62.36  |  39.28   |       12.86        |     48.02      |
-| DUARTE             | 54.04 |  62.36  |  0.00  |  45.81   |       56.08        |     39.46      |
-| SAN JUAN           | 28.91 |  39.28  | 45.81  |   0.00   |       30.01        |     13.34      |
-| SANTIAGO RODRÍGUEZ | 7.21  |  12.86  | 56.08  |  30.01   |        0.00        |     38.00      |
-| MONSEÑOR NOUEL     | 35.86 |  48.02  | 39.46  |  13.34   |       38.00        |      0.00      |
+|                  | ELÍAS PIÑA | EL SEIBO | ESPAILLAT | PERAVIA | VALVERDE | SAN JOSÉ DE OCOA |
+|:-----------------|:----------:|:--------:|:---------:|:-------:|:--------:|:----------------:|
+| ELÍAS PIÑA       |    0.00    |  45.28   |   15.59   |  21.52  |  18.21   |      12.65       |
+| EL SEIBO         |   45.28    |   0.00   |   34.48   |  44.56  |  44.99   |      41.35       |
+| ESPAILLAT        |   15.59    |  34.48   |   0.00    |  16.67  |  21.69   |      14.17       |
+| PERAVIA          |   21.52    |  44.56   |   16.67   |  0.00   |  19.44   |      17.45       |
+| VALVERDE         |   18.21    |  44.99   |   21.69   |  19.44  |   0.00   |      17.40       |
+| SAN JOSÉ DE OCOA |   12.65    |  41.35   |   14.17   |  17.45  |  17.40   |       0.00       |
 
 \$`Conjunto 10`
 
-|                    | DISTRITO NACIONAL | EL SEIBO | LA ROMANA | LA VEGA | PUERTO PLATA | SANTIAGO RODRÍGUEZ |
-|:-------------------|:-----------------:|:--------:|:---------:|:-------:|:------------:|:------------------:|
-| DISTRITO NACIONAL  |       0.00        |  69.28   |   30.62   |  42.13  |    47.38     |       12.86        |
-| EL SEIBO           |       69.28       |   0.00   |   47.30   |  38.26  |    32.32     |       59.25        |
-| LA ROMANA          |       30.62       |  47.30   |   0.00    |  27.71  |    29.34     |       25.46        |
-| LA VEGA            |       42.13       |  38.26   |   27.71   |  0.00   |    17.01     |       32.88        |
-| PUERTO PLATA       |       47.38       |  32.32   |   29.34   |  17.01  |     0.00     |       37.03        |
-| SANTIAGO RODRÍGUEZ |       12.86       |  59.25   |   25.46   |  32.88  |    37.03     |        0.00        |
+|              | BAORUCO | BARAHONA | DUARTE | ESPAILLAT | MONTE CRISTI | HATO MAYOR |
+|:-------------|:-------:|:--------:|:------:|:---------:|:------------:|:----------:|
+| BAORUCO      |  0.00   |  28.66   | 42.17  |   17.44   |    26.65     |   21.00    |
+| BARAHONA     |  28.66  |   0.00   | 31.11  |   20.54   |    52.07     |   18.68    |
+| DUARTE       |  42.17  |  31.11   |  0.00  |   37.27   |    62.36     |   41.50    |
+| ESPAILLAT    |  17.44  |  20.54   | 37.27  |   0.00    |    37.27     |   19.72    |
+| MONTE CRISTI |  26.65  |  52.07   | 62.36  |   37.27   |     0.00     |   38.73    |
+| HATO MAYOR   |  21.00  |  18.68   | 41.50  |   19.72   |    38.73     |    0.00    |
 
 \$`Conjunto 11`
 
-|                    | DUARTE | ESPAILLAT | MONTE CRISTI | SAN JUAN | SANTIAGO RODRÍGUEZ | MONSEÑOR NOUEL |
-|:-------------------|:------:|:---------:|:------------:|:--------:|:------------------:|:--------------:|
-| DUARTE             |  0.00  |   37.27   |    62.36     |  45.81   |       56.08        |     39.46      |
-| ESPAILLAT          | 37.27  |   0.00    |    37.27     |  22.91   |       28.22        |     22.51      |
-| MONTE CRISTI       | 62.36  |   37.27   |     0.00     |  39.28   |       12.86        |     48.02      |
-| SAN JUAN           | 45.81  |   22.91   |    39.28     |   0.00   |       30.01        |     13.34      |
-| SANTIAGO RODRÍGUEZ | 56.08  |   28.22   |    12.86     |  30.01   |        0.00        |     38.00      |
-| MONSEÑOR NOUEL     | 39.46  |   22.51   |    48.02     |  13.34   |       38.00        |      0.00      |
+|                        | DISTRITO NACIONAL | ELÍAS PIÑA | LA VEGA | MARÍA TRINIDAD SÁNCHEZ | MONTE CRISTI | PEDERNALES |
+|:-----------------------|:-----------------:|:----------:|:-------:|:----------------------:|:------------:|:----------:|
+| DISTRITO NACIONAL      |       0.00        |   35.36    |  42.13  |          0.00          |     0.00     |   24.94    |
+| ELÍAS PIÑA             |       35.36       |    0.00    |  10.39  |         35.36          |    35.36     |   19.29    |
+| LA VEGA                |       42.13       |   10.39    |  0.00   |         42.13          |    42.13     |   22.54    |
+| MARÍA TRINIDAD SÁNCHEZ |       0.00        |   35.36    |  42.13  |          0.00          |     0.00     |   24.94    |
+| MONTE CRISTI           |       0.00        |   35.36    |  42.13  |          0.00          |     0.00     |   24.94    |
+| PEDERNALES             |       24.94       |   19.29    |  22.54  |         24.94          |    24.94     |    0.00    |
 
 \$`Conjunto 12`
 
-|               | DUARTE | MONTE CRISTI | PEDERNALES | SAN CRISTÓBAL | VALVERDE | MONTE PLATA |
-|:--------------|:------:|:------------:|:----------:|:-------------:|:--------:|:-----------:|
-| DUARTE        |  0.00  |    62.36     |   50.11    |     36.20     |  47.50   |    48.23    |
-| MONTE CRISTI  | 62.36  |     0.00     |   24.94    |     34.23     |  34.99   |    30.62    |
-| PEDERNALES    | 50.11  |    24.94     |    0.00    |     19.43     |  11.51   |    19.83    |
-| SAN CRISTÓBAL | 36.20  |    34.23     |   19.43    |     0.00      |  20.79   |    19.76    |
-| VALVERDE      | 47.50  |    34.99     |   11.51    |     20.79     |   0.00   |    19.40    |
-| MONTE PLATA   | 48.23  |    30.62     |   19.83    |     19.76     |  19.40   |    0.00     |
+|                      | BAORUCO | LA VEGA | PUERTO PLATA | SAN CRISTÓBAL | SAN PEDRO DE MACORÍS | SANTO DOMINGO |
+|:---------------------|:-------:|:-------:|:------------:|:-------------:|:--------------------:|:-------------:|
+| BAORUCO              |  0.00   |  19.77  |    27.52     |     15.73     |        28.39         |     32.60     |
+| LA VEGA              |  19.77  |  0.00   |    17.01     |     18.50     |        32.87         |     20.79     |
+| PUERTO PLATA         |  27.52  |  17.01  |     0.00     |     21.69     |        31.54         |     16.75     |
+| SAN CRISTÓBAL        |  15.73  |  18.50  |    21.69     |     0.00      |        23.39         |     21.04     |
+| SAN PEDRO DE MACORÍS |  28.39  |  32.87  |    31.54     |     23.39     |         0.00         |     35.36     |
+| SANTO DOMINGO        |  32.60  |  20.79  |    16.75     |     21.04     |        35.36         |     0.00      |
 
 \$`Conjunto 13`
 
-|                      | ELÍAS PIÑA | EL SEIBO | LA ALTAGRACIA | PEDERNALES | SAN PEDRO DE MACORÍS | HATO MAYOR |
-|:---------------------|:----------:|:--------:|:-------------:|:----------:|:--------------------:|:----------:|
-| ELÍAS PIÑA           |    0.00    |  45.28   |     25.22     |   19.29    |        30.62         |   15.81    |
-| EL SEIBO             |   45.28    |   0.00   |     47.37     |   52.49    |        55.23         |   41.23    |
-| LA ALTAGRACIA        |   25.22    |  47.37   |     0.00      |   22.97    |        23.24         |   26.70    |
-| PEDERNALES           |   19.29    |  52.49   |     22.97     |    0.00    |        29.53         |   17.95    |
-| SAN PEDRO DE MACORÍS |   30.62    |  55.23   |     23.24     |   29.53    |         0.00         |   31.62    |
-| HATO MAYOR           |   15.81    |  41.23   |     26.70     |   17.95    |        31.62         |    0.00    |
+|                   | DISTRITO NACIONAL | BAORUCO | ESPAILLAT | LA ROMANA | LA VEGA | SANTO DOMINGO |
+|:------------------|:-----------------:|:-------:|:---------:|:---------:|:-------:|:-------------:|
+| DISTRITO NACIONAL |       0.00        |  26.65  |   37.27   |   30.62   |  42.13  |     54.01     |
+| BAORUCO           |       26.65       |  0.00   |   17.44   |   22.22   |  19.77  |     32.60     |
+| ESPAILLAT         |       37.27       |  17.44  |   0.00    |   21.25   |  15.71  |     26.35     |
+| LA ROMANA         |       30.62       |  22.22  |   21.25   |   0.00    |  27.71  |     33.85     |
+| LA VEGA           |       42.13       |  19.77  |   15.71   |   27.71   |  0.00   |     20.79     |
+| SANTO DOMINGO     |       54.01       |  32.60  |   26.35   |   33.85   |  20.79  |     0.00      |
 
 \$`Conjunto 14`
 
-|                      | AZUA  | BARAHONA | PERAVIA | PUERTO PLATA | SAN PEDRO DE MACORÍS | SANTO DOMINGO |
-|:---------------------|:-----:|:--------:|:-------:|:------------:|:--------------------:|:-------------:|
-| AZUA                 | 0.00  |  40.76   |  17.17  |    34.53     |        23.98         |     41.85     |
-| BARAHONA             | 40.76 |   0.00   |  29.09  |    15.06     |        39.34         |     15.01     |
-| PERAVIA              | 17.17 |  29.09   |  0.00   |    24.59     |        29.66         |     32.63     |
-| PUERTO PLATA         | 34.53 |  15.06   |  24.59  |     0.00     |        31.54         |     16.75     |
-| SAN PEDRO DE MACORÍS | 23.98 |  39.34   |  29.66  |    31.54     |         0.00         |     35.36     |
-| SANTO DOMINGO        | 41.85 |  15.01   |  32.63  |    16.75     |        35.36         |     0.00      |
+|              | BAORUCO | MONTE CRISTI | SAN JUAN | SANTIAGO | VALVERDE | HATO MAYOR |
+|:-------------|:-------:|:------------:|:--------:|:--------:|:--------:|:----------:|
+| BAORUCO      |  0.00   |    26.65     |  21.41   |  27.90   |  19.90   |   21.00    |
+| MONTE CRISTI |  26.65  |     0.00     |  39.28   |  47.14   |  34.99   |   38.73    |
+| SAN JUAN     |  21.41  |    39.28     |   0.00   |  28.33   |   8.32   |    9.94    |
+| SANTIAGO     |  27.90  |    47.14     |  28.33   |   0.00   |  27.93   |   25.60    |
+| VALVERDE     |  19.90  |    34.99     |   8.32   |  27.93   |   0.00   |   12.37    |
+| HATO MAYOR   |  21.00  |    38.73     |   9.94   |  25.60   |  12.37   |    0.00    |
 
 \$`Conjunto 15`
 
-|                      | DAJABÓN | LA VEGA | SAMANÁ | SAN CRISTÓBAL | SAN PEDRO DE MACORÍS | SANTIAGO RODRÍGUEZ |
-|:---------------------|:-------:|:-------:|:------:|:-------------:|:--------------------:|:------------------:|
-| DAJABÓN              |  0.00   |  42.13  | 66.33  |     34.23     |        35.36         |       12.86        |
-| LA VEGA              |  42.13  |  0.00   | 29.95  |     18.50     |        32.87         |       32.88        |
-| SAMANÁ               |  66.33  |  29.95  |  0.00  |     34.60     |        51.48         |       57.38        |
-| SAN CRISTÓBAL        |  34.23  |  18.50  | 34.60  |     0.00      |        23.39         |       27.73        |
-| SAN PEDRO DE MACORÍS |  35.36  |  32.87  | 51.48  |     23.39     |         0.00         |       31.00        |
-| SANTIAGO RODRÍGUEZ   |  12.86  |  32.88  | 57.38  |     27.73     |        31.00         |        0.00        |
+|                  | AZUA  | SAN CRISTÓBAL | VALVERDE | HATO MAYOR | SAN JOSÉ DE OCOA | SANTO DOMINGO |
+|:-----------------|:-----:|:-------------:|:--------:|:----------:|:----------------:|:-------------:|
+| AZUA             | 0.00  |     23.89     |  24.33   |   27.68    |      25.98       |     41.85     |
+| SAN CRISTÓBAL    | 23.89 |     0.00      |  20.79   |   15.31    |      13.86       |     21.04     |
+| VALVERDE         | 24.33 |     20.79     |   0.00   |   12.37    |      17.40       |     28.42     |
+| HATO MAYOR       | 27.68 |     15.31     |  12.37   |    0.00    |      15.28       |     20.41     |
+| SAN JOSÉ DE OCOA | 25.98 |     13.86     |  17.40   |   15.28    |       0.00       |     24.52     |
+| SANTO DOMINGO    | 41.85 |     21.04     |  28.42   |   20.41    |      24.52       |     0.00      |
 
 \$`Conjunto 16`
 
-|                        | BAORUCO | MARÍA TRINIDAD SÁNCHEZ | SAN PEDRO DE MACORÍS | SANCHEZ RAMÍREZ | SANTIAGO RODRÍGUEZ | SAN JOSÉ DE OCOA |
-|:-----------------------|:-------:|:----------------------:|:--------------------:|:---------------:|:------------------:|:----------------:|
-| BAORUCO                |  0.00   |         26.65          |        28.39         |      15.46      |       21.35        |      10.86       |
-| MARÍA TRINIDAD SÁNCHEZ |  26.65  |          0.00          |        35.36         |      20.20      |       12.86        |      35.54       |
-| SAN PEDRO DE MACORÍS   |  28.39  |         35.36          |         0.00         |      30.72      |       31.00        |      29.92       |
-| SANCHEZ RAMÍREZ        |  15.46  |         20.20          |        30.72         |      0.00       |       17.71        |      22.24       |
-| SANTIAGO RODRÍGUEZ     |  21.35  |         12.86          |        31.00         |      17.71      |        0.00        |      28.05       |
-| SAN JOSÉ DE OCOA       |  10.86  |         35.54          |        29.92         |      22.24      |       28.05        |       0.00       |
+|                      | BAORUCO | DUARTE | LA VEGA | SAN PEDRO DE MACORÍS | SANCHEZ RAMÍREZ | SANTIAGO RODRÍGUEZ |
+|:---------------------|:-------:|:------:|:-------:|:--------------------:|:---------------:|:------------------:|
+| BAORUCO              |  0.00   | 42.17  |  19.77  |        28.39         |      15.46      |       21.35        |
+| DUARTE               |  42.17  |  0.00  |  39.87  |        51.37         |      43.77      |       56.08        |
+| LA VEGA              |  19.77  | 39.87  |  0.00   |        32.87         |      31.50      |       32.88        |
+| SAN PEDRO DE MACORÍS |  28.39  | 51.37  |  32.87  |         0.00         |      30.72      |       31.00        |
+| SANCHEZ RAMÍREZ      |  15.46  | 43.77  |  31.50  |        30.72         |      0.00       |       17.71        |
+| SANTIAGO RODRÍGUEZ   |  21.35  | 56.08  |  32.88  |        31.00         |      17.71      |        0.00        |
 
 \$`Conjunto 17`
 
-|                        | BAORUCO | EL SEIBO | LA ROMANA | MARÍA TRINIDAD SÁNCHEZ | PEDERNALES | SANTIAGO RODRÍGUEZ |
-|:-----------------------|:-------:|:--------:|:---------:|:----------------------:|:----------:|:------------------:|
-| BAORUCO                |  0.00   |  49.33   |   22.22   |         26.65          |   14.29    |       21.35        |
-| EL SEIBO               |  49.33  |   0.00   |   47.30   |         69.28          |   52.49    |       59.25        |
-| LA ROMANA              |  22.22  |  47.30   |   0.00    |         30.62          |   23.66    |       25.46        |
-| MARÍA TRINIDAD SÁNCHEZ |  26.65  |  69.28   |   30.62   |          0.00          |   24.94    |       12.86        |
-| PEDERNALES             |  14.29  |  52.49   |   23.66   |         24.94          |    0.00    |       17.40        |
-| SANTIAGO RODRÍGUEZ     |  21.35  |  59.25   |   25.46   |         12.86          |   17.40    |        0.00        |
+|                        | LA ROMANA | MARÍA TRINIDAD SÁNCHEZ | PUERTO PLATA | SANCHEZ RAMÍREZ | HATO MAYOR | SANTO DOMINGO |
+|:-----------------------|:---------:|:----------------------:|:------------:|:---------------:|:----------:|:-------------:|
+| LA ROMANA              |   0.00    |         30.62          |    29.34     |      25.13      |   26.22    |     33.85     |
+| MARÍA TRINIDAD SÁNCHEZ |   30.62   |          0.00          |    47.38     |      20.20      |   38.73    |     54.01     |
+| PUERTO PLATA           |   29.34   |         47.38          |     0.00     |      34.99      |   17.79    |     16.75     |
+| SANCHEZ RAMÍREZ        |   25.13   |         20.20          |    34.99     |      0.00       |   30.14    |     40.72     |
+| HATO MAYOR             |   26.22   |         38.73          |    17.79     |      30.14      |    0.00    |     20.41     |
+| SANTO DOMINGO          |   33.85   |         54.01          |    16.75     |      40.72      |   20.41    |     0.00      |
 
 \$`Conjunto 18`
 
-|                        | BAORUCO | ELÍAS PIÑA | MARÍA TRINIDAD SÁNCHEZ | SAN PEDRO DE MACORÍS | SANCHEZ RAMÍREZ | HATO MAYOR |
-|:-----------------------|:-------:|:----------:|:----------------------:|:--------------------:|:---------------:|:----------:|
-| BAORUCO                |  0.00   |   15.14    |         26.65          |        28.39         |      15.46      |   21.00    |
-| ELÍAS PIÑA             |  15.14  |    0.00    |         35.36          |        30.62         |      27.66      |   15.81    |
-| MARÍA TRINIDAD SÁNCHEZ |  26.65  |   35.36    |          0.00          |        35.36         |      20.20      |   38.73    |
-| SAN PEDRO DE MACORÍS   |  28.39  |   30.62    |         35.36          |         0.00         |      30.72      |   31.62    |
-| SANCHEZ RAMÍREZ        |  15.46  |   27.66    |         20.20          |        30.72         |      0.00       |   30.14    |
-| HATO MAYOR             |  21.00  |   15.81    |         38.73          |        31.62         |      30.14      |    0.00    |
+|              | EL SEIBO | LA VEGA | MONTE CRISTI | PERAVIA | PUERTO PLATA | SAN JUAN |
+|:-------------|:--------:|:-------:|:------------:|:-------:|:------------:|:--------:|
+| EL SEIBO     |   0.00   |  38.26  |    69.28     |  44.56  |    32.32     |  43.57   |
+| LA VEGA      |  38.26   |  0.00   |    42.13     |  23.24  |    17.01     |  14.16   |
+| MONTE CRISTI |  69.28   |  42.13  |     0.00     |  27.22  |    47.38     |  39.28   |
+| PERAVIA      |  44.56   |  23.24  |    27.22     |  0.00   |    24.59     |  23.57   |
+| PUERTO PLATA |  32.32   |  17.01  |    47.38     |  24.59  |     0.00     |  19.38   |
+| SAN JUAN     |  43.57   |  14.16  |    39.28     |  23.57  |    19.38     |   0.00   |
 
 \$`Conjunto 19`
 
-|              | DAJABÓN | EL SEIBO | MONTE CRISTI | SAMANÁ | SAN JUAN | VALVERDE |
-|:-------------|:-------:|:--------:|:------------:|:------:|:--------:|:--------:|
-| DAJABÓN      |  0.00   |  69.28   |     0.00     | 66.33  |  39.28   |  34.99   |
-| EL SEIBO     |  69.28  |   0.00   |    69.28     | 34.64  |  43.57   |  44.99   |
-| MONTE CRISTI |  0.00   |  69.28   |     0.00     | 66.33  |  39.28   |  34.99   |
-| SAMANÁ       |  66.33  |  34.64   |    66.33     |  0.00  |  32.47   |  36.59   |
-| SAN JUAN     |  39.28  |  43.57   |    39.28     | 32.47  |   0.00   |   8.32   |
-| VALVERDE     |  34.99  |  44.99   |    34.99     | 36.59  |   8.32   |   0.00   |
+|                        | BARAHONA | MARÍA TRINIDAD SÁNCHEZ | MONTE CRISTI | SAMANÁ | SANTIAGO RODRÍGUEZ | SAN JOSÉ DE OCOA |
+|:-----------------------|:--------:|:----------------------:|:------------:|:------:|:------------------:|:----------------:|
+| BARAHONA               |   0.00   |         52.07          |    52.07     | 20.53  |       42.55        |      18.53       |
+| MARÍA TRINIDAD SÁNCHEZ |  52.07   |          0.00          |     0.00     | 66.33  |       12.86        |      35.54       |
+| MONTE CRISTI           |  52.07   |          0.00          |     0.00     | 66.33  |       12.86        |      35.54       |
+| SAMANÁ                 |  20.53   |         66.33          |    66.33     |  0.00  |       57.38        |      34.53       |
+| SANTIAGO RODRÍGUEZ     |  42.55   |         12.86          |    12.86     | 57.38  |        0.00        |      28.05       |
+| SAN JOSÉ DE OCOA       |  18.53   |         35.54          |    35.54     | 34.53  |       28.05        |       0.00       |
 
 \$`Conjunto 20`
 
-|               | AZUA  | INDEPENDENCIA | LA ROMANA | PUERTO PLATA | HATO MAYOR | SANTO DOMINGO |
-|:--------------|:-----:|:-------------:|:---------:|:------------:|:----------:|:-------------:|
-| AZUA          | 0.00  |     24.80     |   20.24   |    34.53     |   27.68    |     41.85     |
-| INDEPENDENCIA | 24.80 |     0.00      |   25.16   |    19.01     |    6.12    |     24.38     |
-| LA ROMANA     | 20.24 |     25.16     |   0.00    |    29.34     |   26.22    |     33.85     |
-| PUERTO PLATA  | 34.53 |     19.01     |   29.34   |     0.00     |   17.79    |     16.75     |
-| HATO MAYOR    | 27.68 |     6.12      |   26.22   |    17.79     |    0.00    |     20.41     |
-| SANTO DOMINGO | 41.85 |     24.38     |   33.85   |    16.75     |   20.41    |     0.00      |
+|             | AZUA  | ELÍAS PIÑA | ESPAILLAT | LA VEGA | SAMANÁ | MONTE PLATA |
+|:------------|:-----:|:----------:|:---------:|:-------:|:------:|:-----------:|
+| AZUA        | 0.00  |   25.47    |   26.72   |  31.13  | 55.48  |    16.21    |
+| ELÍAS PIÑA  | 25.47 |    0.00    |   15.59   |  10.39  | 39.05  |    21.65    |
+| ESPAILLAT   | 26.72 |   15.59    |   0.00    |  15.71  | 38.15  |    21.25    |
+| LA VEGA     | 31.13 |   10.39    |   15.71   |  0.00   | 29.95  |    23.65    |
+| SAMANÁ      | 55.48 |   39.05    |   38.15   |  29.95  |  0.00  |    45.69    |
+| MONTE PLATA | 16.21 |   21.65    |   21.25   |  23.65  | 45.69  |    0.00     |
+
+\$`Conjunto 21`
+
+|                        | AZUA  | BAORUCO | MARÍA TRINIDAD SÁNCHEZ | SANCHEZ RAMÍREZ | MONTE PLATA | SAN JOSÉ DE OCOA |
+|:-----------------------|:-----:|:-------:|:----------------------:|:---------------:|:-----------:|:----------------:|
+| AZUA                   | 0.00  |  19.36  |         14.41          |      16.72      |    16.21    |      25.98       |
+| BAORUCO                | 19.36 |  0.00   |         26.65          |      15.46      |    22.22    |      10.86       |
+| MARÍA TRINIDAD SÁNCHEZ | 14.41 |  26.65  |          0.00          |      20.20      |    30.62    |      35.54       |
+| SANCHEZ RAMÍREZ        | 16.72 |  15.46  |         20.20          |      0.00       |    25.13    |      22.24       |
+| MONTE PLATA            | 16.21 |  22.22  |         30.62          |      25.13      |    0.00     |      22.57       |
+| SAN JOSÉ DE OCOA       | 25.98 |  10.86  |         35.54          |      22.24      |    22.57    |       0.00       |
+
+\$`Conjunto 22`
+
+|                   | DISTRITO NACIONAL | BAORUCO | DUARTE | LA VEGA | SAN JUAN | HATO MAYOR |
+|:------------------|:-----------------:|:-------:|:------:|:-------:|:--------:|:----------:|
+| DISTRITO NACIONAL |       0.00        |  26.65  | 62.36  |  42.13  |  39.28   |   38.73    |
+| BAORUCO           |       26.65       |  0.00   | 42.17  |  19.77  |  21.41   |   21.00    |
+| DUARTE            |       62.36       |  42.17  |  0.00  |  39.87  |  45.81   |   41.50    |
+| LA VEGA           |       42.13       |  19.77  | 39.87  |  0.00   |  14.16   |   11.65    |
+| SAN JUAN          |       39.28       |  21.41  | 45.81  |  14.16  |   0.00   |    9.94    |
+| HATO MAYOR        |       38.73       |  21.00  | 41.50  |  11.65  |   9.94   |    0.00    |
+
+\$`Conjunto 23`
+
+|                 | BAORUCO | DAJABÓN | EL SEIBO | PEDERNALES | SANCHEZ RAMÍREZ | MONSEÑOR NOUEL |
+|:----------------|:-------:|:-------:|:--------:|:----------:|:---------------:|:--------------:|
+| BAORUCO         |  0.00   |  26.65  |  49.33   |   14.29    |      15.46      |     27.24      |
+| DAJABÓN         |  26.65  |  0.00   |  69.28   |   24.94    |      20.20      |     48.02      |
+| EL SEIBO        |  49.33  |  69.28  |   0.00   |   52.49    |      54.06      |     34.54      |
+| PEDERNALES      |  14.29  |  24.94  |  52.49   |    0.00    |      21.42      |     25.84      |
+| SANCHEZ RAMÍREZ |  15.46  |  20.20  |  54.06   |   21.42    |      0.00       |     36.71      |
+| MONSEÑOR NOUEL  |  27.24  |  48.02  |  34.54   |   25.84    |      36.71      |      0.00      |
+
+\$`Conjunto 24`
+
+|               | ELÍAS PIÑA | LA ALTAGRACIA | MONTE CRISTI | PERAVIA | PUERTO PLATA | SANTO DOMINGO |
+|:--------------|:----------:|:-------------:|:------------:|:-------:|:------------:|:-------------:|
+| ELÍAS PIÑA    |    0.00    |     25.22     |    35.36     |  21.52  |    23.42     |     28.87     |
+| LA ALTAGRACIA |   25.22    |     0.00      |    28.78     |  14.20  |    27.67     |     32.45     |
+| MONTE CRISTI  |   35.36    |     28.78     |     0.00     |  27.22  |    47.38     |     54.01     |
+| PERAVIA       |   21.52    |     14.20     |    27.22     |  0.00   |    24.59     |     32.63     |
+| PUERTO PLATA  |   23.42    |     27.67     |    47.38     |  24.59  |     0.00     |     16.75     |
+| SANTO DOMINGO |   28.87    |     32.45     |    54.01     |  32.63  |    16.75     |     0.00      |
+
+\$`Conjunto 25`
+
+|                      | BAORUCO | BARAHONA | LA VEGA | PEDERNALES | SAN PEDRO DE MACORÍS | MONTE PLATA |
+|:---------------------|:-------:|:--------:|:-------:|:----------:|:--------------------:|:-----------:|
+| BAORUCO              |  0.00   |  28.66   |  19.77  |   14.29    |        28.39         |    22.22    |
+| BARAHONA             |  28.66  |   0.00   |  14.62  |   31.44    |        39.34         |    31.24    |
+| LA VEGA              |  19.77  |  14.62   |  0.00   |   22.54    |        32.87         |    23.65    |
+| PEDERNALES           |  14.29  |  31.44   |  22.54  |    0.00    |        29.53         |    19.83    |
+| SAN PEDRO DE MACORÍS |  28.39  |  39.34   |  32.87  |   29.53    |         0.00         |    17.68    |
+| MONTE PLATA          |  22.22  |  31.24   |  23.65  |   19.83    |        17.68         |    0.00     |
+
+\$`Conjunto 26`
+
+|               | BARAHONA | DAJABÓN | LA ALTAGRACIA | LA VEGA | PEDERNALES | VALVERDE |
+|:--------------|:--------:|:-------:|:-------------:|:-------:|:----------:|:--------:|
+| BARAHONA      |   0.00   |  52.07  |     31.51     |  14.62  |   31.44    |  24.20   |
+| DAJABÓN       |  52.07   |  0.00   |     28.78     |  42.13  |   24.94    |  34.99   |
+| LA ALTAGRACIA |  31.51   |  28.78  |     0.00      |  26.88  |   22.97    |  27.10   |
+| LA VEGA       |  14.62   |  42.13  |     26.88     |  0.00   |   22.54    |  17.34   |
+| PEDERNALES    |  31.44   |  24.94  |     22.97     |  22.54  |    0.00    |  11.51   |
+| VALVERDE      |  24.20   |  34.99  |     27.10     |  17.34  |   11.51    |   0.00   |
+
+\$`Conjunto 27`
+
+|                        | AZUA  | LA ROMANA | MARÍA TRINIDAD SÁNCHEZ | PERAVIA | SAMANÁ | SAN PEDRO DE MACORÍS |
+|:-----------------------|:-----:|:---------:|:----------------------:|:-------:|:------:|:--------------------:|
+| AZUA                   | 0.00  |   20.24   |         14.41          |  17.17  | 55.48  |        23.98         |
+| LA ROMANA              | 20.24 |   0.00    |         30.62          |  23.81  | 48.35  |        17.68         |
+| MARÍA TRINIDAD SÁNCHEZ | 14.41 |   30.62   |          0.00          |  27.22  | 66.33  |        35.36         |
+| PERAVIA                | 17.17 |   23.81   |         27.22          |  0.00   | 45.05  |        29.66         |
+| SAMANÁ                 | 55.48 |   48.35   |         66.33          |  45.05  |  0.00  |        51.48         |
+| SAN PEDRO DE MACORÍS   | 23.98 |   17.68   |         35.36          |  29.66  | 51.48  |         0.00         |
+
+\$`Conjunto 28`
+
+|                        | BAORUCO | BARAHONA | MARÍA TRINIDAD SÁNCHEZ | SAMANÁ | SAN JUAN | SANTO DOMINGO |
+|:-----------------------|:-------:|:--------:|:----------------------:|:------:|:--------:|:-------------:|
+| BAORUCO                |  0.00   |  28.66   |         26.65          | 43.35  |  21.41   |     32.60     |
+| BARAHONA               |  28.66  |   0.00   |         52.07          | 20.53  |  20.56   |     15.01     |
+| MARÍA TRINIDAD SÁNCHEZ |  26.65  |  52.07   |          0.00          | 66.33  |  39.28   |     54.01     |
+| SAMANÁ                 |  43.35  |  20.53   |         66.33          |  0.00  |  32.47   |     17.80     |
+| SAN JUAN               |  21.41  |  20.56   |         39.28          | 32.47  |   0.00   |     25.76     |
+| SANTO DOMINGO          |  32.60  |  15.01   |         54.01          | 17.80  |  25.76   |     0.00      |
+
+\$`Conjunto 29`
+
+|                  | LA ALTAGRACIA | LA VEGA | SANTIAGO | MONSEÑOR NOUEL | MONTE PLATA | SAN JOSÉ DE OCOA |
+|:-----------------|:-------------:|:-------:|:--------:|:--------------:|:-----------:|:----------------:|
+| LA ALTAGRACIA    |     0.00      |  26.88  |  22.06   |     30.45      |    20.49    |      18.07       |
+| LA VEGA          |     26.88     |  0.00   |  23.50   |     12.96      |    23.65    |      11.37       |
+| SANTIAGO         |     22.06     |  23.50  |   0.00   |     21.69      |    25.69    |      21.58       |
+| MONSEÑOR NOUEL   |     30.45     |  12.96  |  21.69   |      0.00      |    25.20    |      18.62       |
+| MONTE PLATA      |     20.49     |  23.65  |  25.69   |     25.20      |    0.00     |      22.57       |
+| SAN JOSÉ DE OCOA |     18.07     |  11.37  |  21.58   |     18.62      |    22.57    |       0.00       |
+
+\$`Conjunto 30`
+
+|                   | DISTRITO NACIONAL | DUARTE | EL SEIBO | LA VEGA | SAN JUAN | SANCHEZ RAMÍREZ |
+|:------------------|:-----------------:|:------:|:--------:|:-------:|:--------:|:---------------:|
+| DISTRITO NACIONAL |       0.00        | 62.36  |  69.28   |  42.13  |  39.28   |      20.20      |
+| DUARTE            |       62.36       |  0.00  |  36.82   |  39.87  |  45.81   |      43.77      |
+| EL SEIBO          |       69.28       | 36.82  |   0.00   |  38.26  |  43.57   |      54.06      |
+| LA VEGA           |       42.13       | 39.87  |  38.26   |  0.00   |  14.16   |      31.50      |
+| SAN JUAN          |       39.28       | 45.81  |  43.57   |  14.16  |   0.00   |      31.61      |
+| SANCHEZ RAMÍREZ   |       20.20       | 43.77  |  54.06   |  31.50  |  31.61   |      0.00       |
 
 ## **Mandato**.
 
@@ -681,38 +918,52 @@ print(sapply(
 > distancias para que realices el agrupamiento (parte 2 de este
 > mandato). Sin embargo, el Tali también te pide, en la parte 1 de este
 > mandato que, a modo de prueba, calcules la distancia euclidiana para
-> dos pares de provincias elegidos al azar de entre los 15 posibles.
-> Esto tiene por objetivo que puedas medir tu rendimiento en el cálculo
-> de distancias en un espacio n-dimensional.
+> dos pares de provincias elegidos al azar de entre todos los pares
+> posibles. Esto tiene por objetivo que puedas medir tu rendimiento en
+> el cálculo de distancias en un espacio n-dimensional.
 
 > Los cálculos se pueden realizar a mano o con una calculadora del
 > teléfono, utilizando las fórmulas proporcionadas.
 
-1.  Usando los datos generados por Martínez-Batlle (2022), para el
-    conjunto que te tocó (recuerda reservar el conjunto 1 al Tali),
-    obtén la distancia euclidiana entre un par de provincias elegidas
-    por ti al azar (tienes que analizar 6 provincias, elige un par al
-    azar). Haz este cálculo usando todas las dimensiones (atributos)
-    disponibles (doce en total). Ten presente que, para incluir las doce
-    dimensiones, deberás usar la fórmula generalizada de la distancia
-    que verás en el ejemplo práctico, la cual considera un espacio
-    n-dimensional (es decir, sumando los cuadrados de las diferencias
-    entre sus coordenadas correspondientes en cada una de las doce
-    dimensiones, y tomando la raíz cuadrada del resultado). **Esta parte
-    del ejercicio es obligatoria, pero no es imprescindible para
-    realizar la segunda parte**, y lo único que quiero es verificar tu
-    rendimiento para calcular distancias en un espacio n-dimensional,
-    donde n\>3. Es decir, no te estoy pidiendo que hagas esta parte 1
-    para poder hacer la 2. Simplemente, quiero que calcules distancias.
-    Además, ten presente que tu cálculo lo podrás comprobar con el que
-    se encuentra en la matriz de distancias ya calculada.
+> **IMPORTANTE**. Anuncia tu conjunto elegido en el foro, indicando que
+> te refieres a la PD03.
 
-2.  Aplica el método de agrupamiento jerárquico aglomerativo promedio no
-    ponderado (UPGMA) para agrupar las provincias según su riqueza
-    relativa de especies por género de bromelias, usando la matriz de
-    distancias provista arriba.
+1.  Parte 1 del mandato. Usando los datos generados por Martínez-Batlle
+    (2022), para el conjunto que te tocó (recuerda reservar el conjunto
+    1 al Tali), obtén la distancia euclidiana entre un par de provincias
+    elegidas por ti al azar (aunque tendrás que analizar 6 provincias en
+    la parte 2, en este mandato elige un par al azar). Haz este cálculo
+    usando todas las dimensiones (atributos) disponibles (un máximo de
+    doce en total, que coincide con el número de géneros de Bromeliaceae
+    disponibles). Ten presente que, para incluir todas las dimensiones,
+    deberás usar la fórmula generalizada de la distancia que verás en el
+    ejemplo práctico, la cual considera un espacio n-dimensional (es
+    decir, sumando los cuadrados de las diferencias entre sus
+    coordenadas correspondientes en cada una de las dimensiones, y
+    tomando la raíz cuadrada del resultado). **Esta parte del ejercicio
+    es obligatoria, pero no es imprescindible para realizar la segunda
+    parte**, y lo único que quiero es verificar tu rendimiento para
+    calcular distancias en un espacio n-dimensional, donde n\>3. Es
+    decir, no te estoy pidiendo que hagas esta parte 1 para poder hacer
+    la 2. Simplemente, quiero que calcules distancias. Además, ten
+    presente que el cómputo final de la distancia lo podrás comprobar
+    con el que se encuentra en la matriz de distancias ya calculada, y
+    que te incluí arriba.
 
-3.  Redacta, en un máximo de cuatro párrafos, lo siguiente:
+2.  Parte 2 del mandato. Aplica el método de agrupamiento jerárquico
+    aglomerativo promedio no ponderado (UPGMA) para agrupar las
+    provincias según su riqueza relativa de especies por género de
+    bromelias, usando la matriz de distancias provista arriba. Este
+    método de agrupamiento jerárquico te permitirá identificar patrones
+    biogeográficos comunes y diferenciar unidades territoriales en
+    función de su diversidad de géneros de Bromeliaceae. Para realizar
+    este agrupamiento, puedes seguir el ejemplo práctico que te
+    proporciono más abajo. Comprueba que el resultado obtenido coincide
+    con el que te proporcioné al final de este cuaderno, según tu
+    conjunto elegido.
+
+3.  Parte 3 del mandado. Consolidando. Redacta, en un máximo de cuatro
+    párrafos, lo siguiente:
 
 - Introducción, en el que podrías incluir importancia del ejercicio,
   objetivo, justificación.
@@ -721,12 +972,13 @@ print(sapply(
   específicas empleadas, que en tu caso son la distancia y el método de
   agrupamiento enseñado.
 - Resultado, lo cual supone describir, fríamente, lo que obtuviste.
-- Discusión, donde indiques si alcanzaste el objetivo, interpretes el
-  resultado, indiques las limitaciones y los posibles trabajos futuros.
+- Discusión, donde indiques si alcanzaste el objetivo, y donde
+  posteriormente interpretas el resultado, indicas las limitaciones y
+  los posibles trabajos futuros.
 
 # Ejemplo práctico
 
-## Parte 1. Calcular distancia entre dos provincias.
+## Demostración de la parte 1 del mandato. Calcular distancia entre dos provincias.
 
 > Recuerda: esta parte es obligatoria, pero no es un imprescindible para
 > realizar la parte 2. Sólo me interesa que verifiques tu rendimiento
@@ -781,6 +1033,10 @@ $$
 d(\text{BAORUCO, INDEPENDENCIA}) = \sqrt{365.04} \approx 19.11
 $$
 
+Si se compara con el valor del par correspondiente en la matriz de
+distancias incluida arriba, se puede comprobar que el cálculo es
+correcto, con apenas una centésima de diferencia.
+
 ### Resultado
 
 La distancia euclidiana entre las provincias **BAORUCO** e
@@ -788,7 +1044,7 @@ La distancia euclidiana entre las provincias **BAORUCO** e
 Esta distancia refleja la magnitud de la diferencia en la distribución
 de géneros de Bromeliaceae entre las dos provincias consideradas.
 
-## Parte 2. Aplicar el método UPGMA
+## Demostración de la parte 2 del mandato. Aplicar el método UPGMA
 
 Para realizar un agrupamiento jerárquico utilizando el método de
 agrupamiento jerárquico aglomerativo promedio no ponderado (UPGMA),
@@ -965,7 +1221,15 @@ patrones biogeográficos y destaca las relaciones entre provincias con
 características comunes, lo que es útil para estudios de biodiversidad y
 planificación de conservación.
 
-# ¿Cómo se haría el ejemplo práctico en R?
+## Demostración de la parte 3 del mandato. Consolidando.
+
+Redacta, en un máximo de cuatro párrafos, una introducción, materiales y
+métodos, resultados y discusión de la práctica realizada. No te incluiré
+una redacción demostrativa aquí, para evitar limitar tu creatividad.
+Sólo sigue las instrucciones señaladas arriba sobre lo que debes incluir
+en cada sección.
+
+## ¿Cómo se haría el ejemplo práctico en R?
 
 ``` r
 conjuntos_l_1 <- conjuntos_l[[1]]
@@ -973,11 +1237,23 @@ dist_conj_1 <- conjuntos_l_1 %>%
   as.data.frame() %>%
   column_to_rownames('nombre') %>%
   dist(diag = T, upper = T)
+```
+
+- Para la parte 1 del mandato, imprimir la matriz de distancias y
+  localizar el par de interés.
+
+``` r
+dist_conj_1
+```
+
+- Para la parte 2 del mandato, aplicar el método UPGMA y graficar.
+
+``` r
 conj_1_upgma <- hclust(dist_conj_1, method = 'average')
 plot(conj_1_upgma)
 ```
 
-- Todos
+# Solución de la parte 2 del mandato, para todos los conjuntos
 
 ``` r
 invisible(sapply(names(conjuntos_l),
@@ -987,11 +1263,11 @@ invisible(sapply(names(conjuntos_l),
            column_to_rownames('nombre') %>%
            dist(diag = T, upper = T)
          u <- hclust(d, method = 'average')
-         plot(u, main = x)
+         plot(u, main = x, cex = 0.5)
        }))
 ```
 
-<img src="README_files/figure-gfm/unnamed-chunk-13-1.png" width="75%" /><img src="README_files/figure-gfm/unnamed-chunk-13-2.png" width="75%" /><img src="README_files/figure-gfm/unnamed-chunk-13-3.png" width="75%" /><img src="README_files/figure-gfm/unnamed-chunk-13-4.png" width="75%" /><img src="README_files/figure-gfm/unnamed-chunk-13-5.png" width="75%" /><img src="README_files/figure-gfm/unnamed-chunk-13-6.png" width="75%" /><img src="README_files/figure-gfm/unnamed-chunk-13-7.png" width="75%" /><img src="README_files/figure-gfm/unnamed-chunk-13-8.png" width="75%" /><img src="README_files/figure-gfm/unnamed-chunk-13-9.png" width="75%" /><img src="README_files/figure-gfm/unnamed-chunk-13-10.png" width="75%" /><img src="README_files/figure-gfm/unnamed-chunk-13-11.png" width="75%" /><img src="README_files/figure-gfm/unnamed-chunk-13-12.png" width="75%" /><img src="README_files/figure-gfm/unnamed-chunk-13-13.png" width="75%" /><img src="README_files/figure-gfm/unnamed-chunk-13-14.png" width="75%" /><img src="README_files/figure-gfm/unnamed-chunk-13-15.png" width="75%" /><img src="README_files/figure-gfm/unnamed-chunk-13-16.png" width="75%" /><img src="README_files/figure-gfm/unnamed-chunk-13-17.png" width="75%" /><img src="README_files/figure-gfm/unnamed-chunk-13-18.png" width="75%" /><img src="README_files/figure-gfm/unnamed-chunk-13-19.png" width="75%" /><img src="README_files/figure-gfm/unnamed-chunk-13-20.png" width="75%" />
+<img src="README_files/figure-gfm/unnamed-chunk-18-1.png" width="100%" /><img src="README_files/figure-gfm/unnamed-chunk-18-2.png" width="100%" /><img src="README_files/figure-gfm/unnamed-chunk-18-3.png" width="100%" /><img src="README_files/figure-gfm/unnamed-chunk-18-4.png" width="100%" /><img src="README_files/figure-gfm/unnamed-chunk-18-5.png" width="100%" /><img src="README_files/figure-gfm/unnamed-chunk-18-6.png" width="100%" /><img src="README_files/figure-gfm/unnamed-chunk-18-7.png" width="100%" /><img src="README_files/figure-gfm/unnamed-chunk-18-8.png" width="100%" /><img src="README_files/figure-gfm/unnamed-chunk-18-9.png" width="100%" /><img src="README_files/figure-gfm/unnamed-chunk-18-10.png" width="100%" /><img src="README_files/figure-gfm/unnamed-chunk-18-11.png" width="100%" /><img src="README_files/figure-gfm/unnamed-chunk-18-12.png" width="100%" /><img src="README_files/figure-gfm/unnamed-chunk-18-13.png" width="100%" /><img src="README_files/figure-gfm/unnamed-chunk-18-14.png" width="100%" /><img src="README_files/figure-gfm/unnamed-chunk-18-15.png" width="100%" /><img src="README_files/figure-gfm/unnamed-chunk-18-16.png" width="100%" /><img src="README_files/figure-gfm/unnamed-chunk-18-17.png" width="100%" /><img src="README_files/figure-gfm/unnamed-chunk-18-18.png" width="100%" /><img src="README_files/figure-gfm/unnamed-chunk-18-19.png" width="100%" /><img src="README_files/figure-gfm/unnamed-chunk-18-20.png" width="100%" /><img src="README_files/figure-gfm/unnamed-chunk-18-21.png" width="100%" /><img src="README_files/figure-gfm/unnamed-chunk-18-22.png" width="100%" /><img src="README_files/figure-gfm/unnamed-chunk-18-23.png" width="100%" /><img src="README_files/figure-gfm/unnamed-chunk-18-24.png" width="100%" /><img src="README_files/figure-gfm/unnamed-chunk-18-25.png" width="100%" /><img src="README_files/figure-gfm/unnamed-chunk-18-26.png" width="100%" /><img src="README_files/figure-gfm/unnamed-chunk-18-27.png" width="100%" /><img src="README_files/figure-gfm/unnamed-chunk-18-28.png" width="100%" /><img src="README_files/figure-gfm/unnamed-chunk-18-29.png" width="100%" /><img src="README_files/figure-gfm/unnamed-chunk-18-30.png" width="100%" />
 
 ## Referencias
 
